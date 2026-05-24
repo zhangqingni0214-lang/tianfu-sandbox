@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>套餐 B · 商业落地型沙盘 — 天府国际金融中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: linear-gradient(180deg, #f7f9fc 0%, #eaeef3 100%);
+    color: #1d1d1f;
+  }
+  #scene { position: absolute; inset: 0; }
+  .panel {
+    position: absolute;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(60,80,110,0.10), 0 2px 6px rgba(60,80,110,0.06);
+    padding: 16px 18px;
+  }
+  #hud-top { top: 22px; left: 22px; width: 360px; }
+  #hud-top h1 { font-size: 17px; font-weight: 600; }
+  #hud-top .sub { font-size: 11px; color: #86868b; margin-top: 3px; letter-spacing: 0.4px; }
+  .badge {
+    display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 8px;
+    background: linear-gradient(135deg, #2d6cdf, #6aa8ff); color: white;
+    font-weight: 600; letter-spacing: 0.5px; margin-left: 8px;
+  }
+  #hud-top .scores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  #hud-top .scores .card { background: rgba(245,247,250,0.65); border-radius: 12px; padding: 9px 11px; }
+  #hud-top .scores .label { font-size: 10px; color: #86868b; letter-spacing: 0.3px; }
+  #hud-top .scores .val { font-size: 19px; font-weight: 600; margin-top: 2px; }
+  #hud-top .scores .unit { font-size: 10px; color: #86868b; margin-left: 2px; font-weight: 500; }
+  #hud-top .scores .delta { font-size: 10px; margin-left: 5px; }
+  #hud-top .scores .up { color: #34c759; }
+  #hud-top .scores .down { color: #ff3b30; }
+
+  /* 控件 */
+  #ctrls { top: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+  .pill { padding: 9px 16px; border-radius: 14px; font-size: 12px; font-weight: 500;
+    background: rgba(255,255,255,0.78); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.55); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(60,80,110,0.08);
+    color: #424245;
+    transition: all 0.18s ease;
+  }
+  .pill.active { background: #1d1d1f; color: white; }
+  .pill:hover:not(.active) { background: rgba(255,255,255,0.92); }
+
+  /* 月份滑块 */
+  #monthBar { bottom: 22px; left: 50%; transform: translateX(-50%); width: 620px; padding: 14px 20px; }
+  #monthBar .label-row { display: flex; justify-content: space-between; font-size: 11px; color: #86868b; margin-bottom: 6px; }
+  #monthBar .label-row .cur { color: #1d1d1f; font-weight: 600; font-size: 12px; }
+  #monthSlider { width: 100%; -webkit-appearance: none; appearance: none; height: 6px;
+    background: linear-gradient(90deg, #4a90e2 0%, #4a90e2 var(--p,50%), #e1e6ec var(--p,50%), #e1e6ec 100%);
+    border-radius: 3px; outline: none;
+  }
+  #monthSlider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+    background: white; border: 2px solid #4a90e2; border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(74,144,226,0.4);
+    cursor: pointer;
+  }
+  #monthBar .ticks { display: flex; justify-content: space-between; font-size: 9px; color: #a1a1a6; margin-top: 5px; }
+
+  /* 右上：雷达 */
+  #radar-panel { top: 22px; right: 22px; width: 280px; }
+  #radar-panel h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.6px; }
+  #radarCanvas { width: 100%; height: 220px; margin-top: 6px; }
+
+  /* 右中：客群分布 */
+  #seg-panel { top: 290px; right: 22px; width: 280px; }
+  #seg-panel h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .seg-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 11px; }
+  .seg-row .lab { width: 70px; color: #424245; }
+  .seg-row .bar { flex: 1; height: 10px; border-radius: 5px; background: #eef2f7; overflow: hidden; position: relative; }
+  .seg-row .bar > div { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+  .seg-row .val { width: 56px; text-align: right; color: #1d1d1f; font-weight: 600; }
+
+  /* 右下：竞争 U 曲线 */
+  #uc-panel { bottom: 22px; right: 22px; width: 280px; }
+  #uc-panel h2 { font-size: 12px; font-weight: 600; }
+  #uc-panel .sub { font-size: 10px; color: #86868b; margin-top: 2px; }
+  #ucCanvas { width: 100%; height: 130px; margin-top: 6px; }
+
+  /* 左下：图例 */
+  #legend { bottom: 22px; left: 22px; padding: 12px 16px; }
+  #legend .row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #424245; margin: 3px 0; }
+  #legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* 业态切换 */
+  #cat-bar { top: 80px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+  .catBtn {
+    padding: 6px 13px; font-size: 11px; border-radius: 10px;
+    background: rgba(255,255,255,0.78); backdrop-filter: blur(16px);
+    cursor: pointer; color: #424245; border: 1px solid rgba(255,255,255,0.6);
+    transition: all 0.18s;
+  }
+  .catBtn.active { background: #4a90e2; color: white; }
+
+  #footer {
+    position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: #a1a1a6; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div id="hud-top" class="panel">
+  <h1>天府国际金融中心 <span class="badge">套餐 B · 落地</span></h1>
+  <div class="sub">CHENGDU · TIANFU IFC · CORE 500m · 决策视图</div>
+  <div class="scores">
+    <div class="card"><div class="label">综合评分</div>
+      <div class="val" id="kpiScore">—<span class="unit">/10</span></div></div>
+    <div class="card"><div class="label">年营业额预测</div>
+      <div class="val" id="kpiRev">—<span class="unit">万</span></div></div>
+    <div class="card"><div class="label">租金比</div>
+      <div class="val" id="kpiRent">—<span class="unit">%</span></div></div>
+    <div class="card"><div class="label">ROI · 回收期</div>
+      <div class="val" id="kpiROI">—<span class="unit">年</span></div></div>
+  </div>
+</div>
+
+<div id="ctrls">
+  <div class="pill active" data-period="morning">早高峰</div>
+  <div class="pill" data-period="lunch">午高峰</div>
+  <div class="pill" data-period="evening">晚高峰</div>
+  <div class="pill" data-period="off">平峰</div>
+</div>
+
+<div id="cat-bar">
+  <div class="catBtn active" data-cat="coffee">咖啡</div>
+  <div class="catBtn" data-cat="meal">简餐</div>
+  <div class="catBtn" data-cat="retail">轻奢零售</div>
+</div>
+
+<div id="radar-panel" class="panel">
+  <h2>五维雷达 / 5-DIM</h2>
+  <canvas id="radarCanvas" width="540" height="440"></canvas>
+</div>
+
+<div id="seg-panel" class="panel">
+  <h2>客群分层 · CONSUMER MIX</h2>
+  <div class="seg-row"><span class="lab">金融白领</span>
+    <div class="bar"><div id="bar1" style="width:45%;background:#4a90e2"></div></div>
+    <span class="val" id="v1">—</span></div>
+  <div class="seg-row"><span class="lab">周边居民</span>
+    <div class="bar"><div id="bar2" style="width:30%;background:#34c759"></div></div>
+    <span class="val" id="v2">—</span></div>
+  <div class="seg-row"><span class="lab">商旅访客</span>
+    <div class="bar"><div id="bar3" style="width:15%;background:#ff9500"></div></div>
+    <span class="val" id="v3">—</span></div>
+  <div class="seg-row"><span class="lab">其他</span>
+    <div class="bar"><div id="bar4" style="width:10%;background:#8e8e93"></div></div>
+    <span class="val" id="v4">—</span></div>
+</div>
+
+<div id="uc-panel" class="panel">
+  <h2>竞争修正 K · U-CURVE</h2>
+  <div class="sub">同业咖啡数 vs 修正系数 · 当前 ↘</div>
+  <canvas id="ucCanvas" width="540" height="260"></canvas>
+</div>
+
+<div id="legend" class="panel">
+  <div class="row"><span class="dot" style="background:#d4af37"></span>锚店 / IFC 主塔</div>
+  <div class="row"><span class="dot" style="background:#4a90e2"></span>候选铺位</div>
+  <div class="row"><span class="dot" style="background:#34c759"></span>地铁口（200m 半衰）</div>
+  <div class="row"><span class="dot" style="background:#ff3b30"></span>同业竞争点</div>
+  <div class="row"><span class="dot" style="background:#5ac8fa"></span>互补业态点</div>
+</div>
+
+<div id="monthBar" class="panel">
+  <div class="label-row">
+    <span>月份 / MONTH</span>
+    <span class="cur" id="monthCur">5 月（基准）</span>
+  </div>
+  <input type="range" id="monthSlider" min="1" max="12" value="5">
+  <div class="ticks">
+    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+    <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
+  </div>
+</div>
+
+<div id="footer">数据：PDF 实测 + AI 估算 · 公式：G②+E②+C③+K②+X② · 输出：评分/营收/租金比/ROI</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// 建筑布局（同 A）
+const BUILDINGS = [
+  { id:'IFC1',  name:'天府国际金融中心 T1', cat:'office', anchor:true,  x:-40, z:-20, w:60, d:55, h:220, color:0xffffff },
+  { id:'IFC2',  name:'天府国际金融中心 T2', cat:'office', anchor:true,  x:30,  z:-30, w:55, d:50, h:200, color:0xffffff },
+  { id:'TWIN1', name:'金融城双子塔 南',     cat:'office', anchor:true,  x:90,  z:30,  w:45, d:45, h:218, color:0xfaf9f6 },
+  { id:'TWIN2', name:'金融城双子塔 北',     cat:'office', anchor:true,  x:90,  z:-50, w:45, d:45, h:218, color:0xfaf9f6 },
+  { id:'IN99',  name:'成都银泰中心 in99',    cat:'mall',   anchor:true,  x:-120,z:50,  w:120,d:90, h:55,  color:0xf2eee4 },
+  { id:'AFC',   name:'中国华商金融中心',     cat:'office', x:-130,z:-90, w:60, d:55, h:160, color:0xffffff },
+  { id:'JZ',    name:'交子金融广场 T1',      cat:'office', x:170, z:-90, w:50, d:50, h:180, color:0xffffff },
+  { id:'JZ2',   name:'交子金融广场 T2',      cat:'office', x:170, z:60,  w:48, d:48, h:165, color:0xffffff },
+  { id:'R1',    name:'枫丹国际',             cat:'res',    x:-180,z:80,  w:50, d:50, h:90,  color:0xf6f1ea },
+  { id:'R2',    name:'中国华商交子公馆',     cat:'res',    x:200, z:140, w:55, d:55, h:110, color:0xf6f1ea },
+  { id:'R3',    name:'瑞禧公馆',             cat:'res',    x:-60, z:160, w:48, d:48, h:85,  color:0xf6f1ea },
+  { id:'C1',    name:'金融城 8 号（建设中）',cat:'build',  x:-200,z:-30, w:60, d:50, h:80,  color:0xe2e6ec },
+  { id:'SHOP',  name:'候选铺位 · IFC 临街', cat:'shop', candidate:true, x:5, z:30, w:18, d:12, h:6, color:0x4a90e2 },
+];
+const METRO = [{ id:'M1', name:'金融城站', x:0, z:80 }, { id:'M2', name:'双子塔站', x:130, z:0 }];
+
+// 同业竞争点（红） & 互补业态点（青）— 在 500m 范围撒
+const COMPS = []; // 同业
+const COMPL = []; // 互补
+(function gen(){
+  // 同业咖啡：30 个点，避开候选铺位
+  for (let i=0;i<30;i++){
+    const x = (Math.random()-0.5)*440;
+    const z = (Math.random()-0.5)*340;
+    if (Math.hypot(x-5, z-30) < 25) continue;
+    COMPS.push({x, z});
+  }
+  for (let i=0;i<60;i++){
+    COMPL.push({ x:(Math.random()-0.5)*440, z:(Math.random()-0.5)*340 });
+  }
+})();
+
+// 基础数据
+const DATA = {
+  population: 442000, density: 35194, rent: 100.2, propensity: 0.85,
+  same: 35, comp: 500, anchor_w: 0.95, N_carry: 55, sigma_base: 0.65,
+  pol: 1.5, risk: -0.5, media: 8.2, sent: 0.6,
+  // 季节修正
+  season: [-0.20, -0.05, 0.08, 0.10, 0.05, 0.02, -0.05, -0.08, 0.10, 0.15, 0.20, 0.08],
+  // 时段：早/午/晚/平
+  periods: {
+    morning: { F_pass: 1800, tau: 0.62, lab:'早高峰' },
+    lunch:   { F_pass: 2400, tau: 0.78, lab:'午高峰' },
+    evening: { F_pass: 2100, tau: 0.70, lab:'晚高峰' },
+    off:     { F_pass: 900,  tau: 0.30, lab:'平峰' },
+  },
+  // 业态档案
+  categories: {
+    coffee: { lab:'咖啡', AOV:35, r1:0.12, r2:0.70, r3:1.2, M:0.90, net:0.15, opex:38, invest:80 },
+    meal:   { lab:'简餐', AOV:55, r1:0.10, r2:0.65, r3:1.4, M:0.85, net:0.08, opex:52, invest:120 },
+    retail: { lab:'零售', AOV:280,r1:0.05, r2:0.28, r3:1.3, M:0.75, net:0.25, opex:48, invest:160 },
+  },
+  // 客群细分（套餐 B：③ 分客群漏斗）
+  segments: [
+    { id:1, name:'金融白领', share:0.45, r1:0.15, r2:0.75, AOV_mul:1.6, color:0x4a90e2 },
+    { id:2, name:'周边居民', share:0.30, r1:0.08, r2:0.55, AOV_mul:1.0, color:0x34c759 },
+    { id:3, name:'商旅访客', share:0.15, r1:0.12, r2:0.65, AOV_mul:2.0, color:0xff9500 },
+    { id:4, name:'其他',     share:0.10, r1:0.05, r2:0.40, AOV_mul:0.8, color:0x8e8e93 },
+  ],
+};
+
+// ============== 计算逻辑 套餐 B ==============
+function calcG_advanced(d_m, T, S, f, C){
+  const R = Math.exp(-d_m/200);
+  const Gmax = 10 * 1.0 * 1.0 * 1.0 * (0.5 + 0.05*10);
+  return Math.min(10, T*R*(S/10)*f*(0.5+0.05*C) / Gmax * 10);
+}
+function calcE_period(F, P_month, pi, M, tau){
+  return F * (P_month/30) * pi * M * (1 + tau*0.5) / 10000;  // 万元
+}
+function calcK_ushape(N, N_carry, Wa){
+  const agg = Math.log(1+N) * 0.15;
+  const loss = (N/N_carry)**2 * 0.8;
+  return 1 + agg - loss + Wa*0.2;
+}
+function calcX_seasonal(pol, risk, media, sent, season_m){
+  const Xbase = 1 + 0.05*pol + 0.03*risk + 0.01*media + 0.05*sent;
+  return Xbase * (1 + season_m);
+}
+// 分客群漏斗
+function calcRevSegmented(F_pass, AOV, r3){
+  let total = 0;
+  const breakdown = [];
+  DATA.segments.forEach(s=>{
+    const v = F_pass * s.share * s.r1 * s.r2 * r3 * (AOV*s.AOV_mul);
+    breakdown.push(v);
+    total += v;
+  });
+  return { total, breakdown };
+}
+
+// 当前态
+const state = { period: 'morning', cat: 'coffee', month: 5 };
+
+function compute(){
+  const shop = BUILDINGS.find(b => b.candidate);
+  const d_m = Math.min(...METRO.map(m => Math.hypot(m.x-shop.x, m.z-shop.z)));
+  const G = calcG_advanced(d_m, 10, 9, 1.0, 8.5);
+  const P = DATA.periods[state.period];
+  const cat = DATA.categories[state.cat];
+  const Eday = calcE_period(85000, 2681, DATA.propensity, cat.M, P.tau);
+  const En = Math.min(10, Eday/900 * 10);
+  // 分客群漏斗
+  const seg = calcRevSegmented(P.F_pass, cat.AOV, cat.r3);
+  const dailyRev = seg.total;
+  const C_score = Math.min(10, dailyRev/2000*10);
+  // 竞争 U 曲线
+  const K = calcK_ushape(DATA.same, DATA.N_carry, DATA.anchor_w);
+  const Kn = Math.max(0, Math.min(10, (K-0.4)/(1.5-0.4)*10));
+  // 外部 含季节
+  const X = calcX_seasonal(DATA.pol, DATA.risk, DATA.media, DATA.sent, DATA.season[state.month-1]);
+  const Xn = Math.max(0, Math.min(10, (X-0.7)/(1.4-0.7)*10));
+  const score = 0.25*G + 0.20*En + 0.20*C_score + 0.20*Kn + 0.15*Xn;
+  const yearRev = dailyRev * K * X * 365 / 10000;     // 万
+  // 租金 100.2 元/㎡·月 × 200㎡
+  const yearRent = DATA.rent * 200 * 12 / 10000;       // 万
+  const rentRatio = yearRent/yearRev*100;
+  const yearProfit = yearRev * cat.net - yearRent - cat.opex;
+  const roi = yearProfit/cat.invest;
+  const payback = cat.invest/Math.max(0.1, yearProfit);
+  return { G, En, C_score, Kn, Xn, score, dailyRev, yearRev, K, X, d_m, Eday,
+           segBreak: seg.breakdown, yearRent, rentRatio, yearProfit, roi, payback, cat };
+}
+
+// ============== Three.js 场景 ==============
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xeef2f7, 800, 1600);
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 1, 4000);
+camera.position.set(420, 380, 520);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.07;
+controls.minDistance = 220; controls.maxDistance = 900;
+controls.maxPolarAngle = Math.PI*0.46;
+controls.target.set(0, 30, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.85));
+const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+dir.position.set(220, 380, 180); dir.castShadow = true;
+dir.shadow.mapSize.set(2048, 2048);
+const sd=600;
+dir.shadow.camera.left=-sd; dir.shadow.camera.right=sd;
+dir.shadow.camera.top=sd; dir.shadow.camera.bottom=-sd;
+dir.shadow.camera.near=1; dir.shadow.camera.far=1200;
+dir.shadow.bias = -0.0002;
+scene.add(dir);
+const fill = new THREE.DirectionalLight(0xeaf2ff, 0.35);
+fill.position.set(-300, 200, -200); scene.add(fill);
+
+// 地面
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000,2000),
+  new THREE.MeshStandardMaterial({ color:0xe9edf2, roughness:0.85, metalness:0.05 }));
+ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+const grid = new THREE.GridHelper(1400, 28, 0xcfd5dd, 0xdde2e9);
+grid.position.y = 0.02; grid.material.transparent=true; grid.material.opacity=0.35; scene.add(grid);
+
+// 道路
+function addRoad(x, z, w, l, rot=0){
+  const r = new THREE.Mesh(new THREE.PlaneGeometry(w, l),
+    new THREE.MeshStandardMaterial({ color:0xd8dfe7, roughness:0.92 }));
+  r.rotation.x = -Math.PI/2; r.rotation.z = rot; r.position.set(x, 0.05, z);
+  r.receiveShadow = true; scene.add(r);
+  const lm = new THREE.Mesh(new THREE.PlaneGeometry(w-2, 0.5),
+    new THREE.MeshBasicMaterial({color: 0xffffff}));
+  lm.rotation.x = -Math.PI/2; lm.rotation.z = rot; lm.position.set(x, 0.06, z); scene.add(lm);
+}
+addRoad(0,0,1200,28, Math.PI/2);
+addRoad(0,0,1200,28, 0);
+
+// 建筑
+const meshMap = new Map();
+BUILDINGS.forEach(b=>{
+  const g = new THREE.BoxGeometry(b.w, b.h, b.d);
+  const m = b.candidate
+    ? new THREE.MeshPhysicalMaterial({ color:0x4a90e2, roughness:0.2, metalness:0.1, emissive:0x4a90e2, emissiveIntensity:0.4 })
+    : new THREE.MeshPhysicalMaterial({ color:b.color, roughness:0.35, metalness:0.15, clearcoat:0.6, clearcoatRoughness:0.3 });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set(b.x, b.h/2, b.z);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  mesh.userData = b;
+  if (b.cat === 'build'){ m.transparent=true; m.opacity=0.6; m.color = new THREE.Color(0xe2e6ec); }
+  scene.add(mesh); meshMap.set(b.id, mesh);
+  // 锚店金顶
+  if (b.anchor && !b.candidate){
+    const t = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.5, 8, b.d*0.5),
+      new THREE.MeshStandardMaterial({ color:0xd4af37, roughness:0.4, metalness:0.7 }));
+    t.position.set(b.x, b.h+4, b.z); t.castShadow=true; scene.add(t);
+  }
+});
+
+// 地铁光圈
+const metroGroups = METRO.map(m=>{
+  const g = new THREE.Group();
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(8, 32),
+    new THREE.MeshStandardMaterial({ color:0x34c759, emissive:0x34c759, emissiveIntensity:0.6 }));
+  disc.rotation.x = -Math.PI/2; disc.position.set(m.x, 0.5, m.z); g.add(disc);
+  [60, 120, 200, 320].forEach((r, i)=>{
+    const ring = new THREE.Mesh(new THREE.RingGeometry(r-1.5, r+1.5, 64),
+      new THREE.MeshBasicMaterial({color:0x34c759, transparent:true, opacity:0.28-i*0.06, side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2; ring.position.set(m.x, 0.35, m.z);
+    ring.userData = { baseR:r, phase:i*0.7 };
+    g.add(ring);
+  });
+  scene.add(g); return g;
+});
+
+// 候选光柱
+const shop = BUILDINGS.find(b => b.candidate);
+const beam = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.0, 1.0, 200, 16, 1, true),
+  new THREE.MeshBasicMaterial({ color:0x4a90e2, transparent:true, opacity:0.18, side:THREE.DoubleSide }));
+beam.position.set(shop.x, 100, shop.z); scene.add(beam);
+
+// 同业 / 互补 点
+const compGroup = new THREE.Group(); scene.add(compGroup);
+function rebuildPoints(){
+  while(compGroup.children.length) compGroup.remove(compGroup.children[0]);
+  COMPS.forEach(p=>{
+    const s = new THREE.Mesh(new THREE.SphereGeometry(2.0, 16, 12),
+      new THREE.MeshStandardMaterial({ color:0xff3b30, emissive:0xff3b30, emissiveIntensity:0.5 }));
+    s.position.set(p.x, 3, p.z); compGroup.add(s);
+  });
+  COMPL.forEach(p=>{
+    const s = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 10),
+      new THREE.MeshStandardMaterial({ color:0x5ac8fa, emissive:0x5ac8fa, emissiveIntensity:0.3 }));
+    s.position.set(p.x, 3, p.z); compGroup.add(s);
+  });
+}
+rebuildPoints();
+
+// 客群分层柱（在 IFC1 顶部装饰）
+const segPillars = [];
+function rebuildSegPillars(){
+  segPillars.forEach(p => scene.remove(p));
+  segPillars.length = 0;
+  const result = compute();
+  const max = Math.max(...result.segBreak, 1);
+  const ifc1 = BUILDINGS.find(b => b.id==='IFC1');
+  result.segBreak.forEach((v, i)=>{
+    const seg = DATA.segments[i];
+    const h = 20 + 80*(v/max);
+    const c = new THREE.Mesh(
+      new THREE.CylinderGeometry(4, 4, h, 16),
+      new THREE.MeshStandardMaterial({ color: seg.color, emissive: seg.color, emissiveIntensity:0.25, roughness:0.4 })
+    );
+    c.position.set(ifc1.x + (i-1.5)*12, ifc1.h + h/2 + 14, ifc1.z);
+    c.castShadow = true;
+    scene.add(c); segPillars.push(c);
+  });
+}
+
+// 街道客流粒子（密度由时段决定）
+let particles, axes, speeds;
+function initParticles(count){
+  if (particles) scene.remove(particles);
+  axes = new Uint8Array(count); speeds = new Float32Array(count);
+  const positions = new Float32Array(count*3);
+  for (let i=0;i<count;i++){
+    const a = Math.random()>0.5 ? 0 : 1; axes[i]=a;
+    if (a===0){ positions[i*3]=(Math.random()-0.5)*1000; positions[i*3+1]=1.2;
+                positions[i*3+2]=(Math.random()<0.5?-1:1)*(4+Math.random()*8); }
+    else      { positions[i*3]=(Math.random()<0.5?-1:1)*(4+Math.random()*8); positions[i*3+1]=1.2;
+                positions[i*3+2]=(Math.random()-0.5)*1000; }
+    speeds[i] = 0.4 + Math.random()*0.9;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particles = new THREE.Points(g, new THREE.PointsMaterial({
+    color: 0x4a90e2, size: 2.4, transparent: true, opacity: 0.75
+  }));
+  scene.add(particles);
+}
+initParticles(280);
+
+function updateParticlesByPeriod(){
+  const counts = { morning:340, lunch:480, evening:380, off:160 };
+  initParticles(counts[state.period]);
+}
+
+// ============== 雷达 ==============
+function drawRadar(values){
+  const cv = document.getElementById('radarCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cx = cv.width/2, cy = cv.height/2 + 10, R = 150;
+  const labels = ['地理 G','经济 E','消费者 C','竞争 K','外部 X'];
+  const N = labels.length;
+  for (let g=1; g<=5; g++){
+    ctx.beginPath();
+    for (let i=0;i<N;i++){
+      const a = -Math.PI/2 + i*2*Math.PI/N;
+      const r = R*g/5;
+      const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(120,130,145,'+(0.10+g*0.03)+')';
+    ctx.lineWidth = 1; ctx.stroke();
+  }
+  for (let i=0;i<N;i++){
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R);
+    ctx.strokeStyle = 'rgba(120,130,145,0.18)'; ctx.stroke();
+  }
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  const grad = ctx.createRadialGradient(cx,cy,0, cx,cy,R);
+  grad.addColorStop(0, 'rgba(74,144,226,0.50)');
+  grad.addColorStop(1, 'rgba(74,144,226,0.18)');
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.2; ctx.stroke();
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    ctx.beginPath(); ctx.arc(x,y,3.4,0,2*Math.PI);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#4a90e2'; ctx.lineWidth=2; ctx.stroke();
+  });
+  ctx.font = '600 22px -apple-system, "PingFang SC"';
+  ctx.fillStyle = '#1d1d1f'; ctx.textAlign='center';
+  labels.forEach((lab,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const x = cx + Math.cos(a)*(R+30);
+    const y = cy + Math.sin(a)*(R+30) + 8;
+    ctx.fillText(lab, x, y);
+    ctx.font = '500 18px -apple-system'; ctx.fillStyle='#86868b';
+    ctx.fillText(values[i].toFixed(1), x, y+22);
+    ctx.font = '600 22px -apple-system, "PingFang SC"'; ctx.fillStyle='#1d1d1f';
+  });
+}
+
+// ============== U 曲线 ==============
+function drawUCurve(currentN){
+  const cv = document.getElementById('ucCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const W = cv.width, H = cv.height, pad = 30;
+  // 数据
+  const xs = [], ys = [];
+  for (let n=1; n<=80; n++){
+    const K = calcK_ushape(n, DATA.N_carry, DATA.anchor_w);
+    xs.push(n); ys.push(K);
+  }
+  const yMax = 1.6, yMin = 0;
+  // 网格
+  ctx.strokeStyle = 'rgba(120,130,145,0.18)';
+  ctx.lineWidth = 1;
+  for (let i=0;i<=4;i++){
+    const y = pad + (H-2*pad)*i/4;
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke();
+  }
+  // 曲线
+  ctx.beginPath();
+  xs.forEach((n,i)=>{
+    const x = pad + (W-2*pad)*(n-1)/79;
+    const y = H - pad - (H-2*pad)*(ys[i]-yMin)/(yMax-yMin);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.4; ctx.stroke();
+  // 当前点
+  const cx = pad + (W-2*pad)*(currentN-1)/79;
+  const cy = H - pad - (H-2*pad)*(calcK_ushape(currentN, DATA.N_carry, DATA.anchor_w)-yMin)/(yMax-yMin);
+  ctx.fillStyle = '#ff3b30';
+  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  // 最优点
+  let bestI = 0, bestY = -Infinity;
+  ys.forEach((v,i)=>{ if(v>bestY){bestY=v; bestI=i;} });
+  const bx = pad + (W-2*pad)*(xs[bestI]-1)/79;
+  const by = H - pad - (H-2*pad)*(bestY-yMin)/(yMax-yMin);
+  ctx.fillStyle = '#34c759';
+  ctx.beginPath(); ctx.arc(bx, by, 4, 0, 2*Math.PI); ctx.fill();
+  // 标注
+  ctx.font = '500 18px -apple-system';
+  ctx.fillStyle = '#86868b'; ctx.textAlign='left';
+  ctx.fillText('当前 '+currentN+' 家 · K=' + calcK_ushape(currentN, DATA.N_carry, DATA.anchor_w).toFixed(2), pad, 18);
+  ctx.fillStyle = '#34c759';
+  ctx.fillText('最优 '+xs[bestI]+' 家', W-pad-90, 18);
+}
+
+// ============== HUD 渲染 ==============
+function renderHUD(){
+  const r = compute();
+  document.getElementById('kpiScore').innerHTML = r.score.toFixed(1) + '<span class="unit">/10</span>';
+  document.getElementById('kpiRev').innerHTML  = Math.round(r.yearRev) + '<span class="unit">万</span>';
+  document.getElementById('kpiRent').innerHTML = r.rentRatio.toFixed(1) + '<span class="unit">%</span>';
+  document.getElementById('kpiROI').innerHTML  = r.payback.toFixed(1) + '<span class="unit">年</span>'
+    + ' <span class="delta '+(r.roi>0.3?'up':(r.roi>0?'':'down'))+'">ROI '+(r.roi*100).toFixed(0)+'%</span>';
+  drawRadar([r.G, r.En, r.C_score, r.Kn, r.Xn]);
+  // 客群条形
+  const max = Math.max(...r.segBreak, 1);
+  r.segBreak.forEach((v,i)=>{
+    document.getElementById('bar'+(i+1)).style.width = (v/max*100) + '%';
+    document.getElementById('v'+(i+1)).textContent = '¥'+Math.round(v);
+  });
+  drawUCurve(DATA.same);
+  rebuildSegPillars();
+}
+
+// ============== 交互 ==============
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+window.addEventListener('mousemove', e=>{
+  mouse.x = (e.clientX/innerWidth)*2-1;
+  mouse.y = -(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects([...meshMap.values()]);
+  [...meshMap.values()].forEach(m => {
+    if (!m.userData.candidate){ m.material.emissive = new THREE.Color(0); m.material.emissiveIntensity = 0; }
+  });
+  if (hits.length && !hits[0].object.userData.candidate){
+    hits[0].object.material.emissive = new THREE.Color(0xa9c2ff);
+    hits[0].object.material.emissiveIntensity = 0.18;
+  }
+});
+
+// 时段切换
+document.querySelectorAll('#ctrls .pill').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('#ctrls .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    state.period = p.dataset.period;
+    updateParticlesByPeriod();
+    renderHUD();
+  });
+});
+// 业态切换
+document.querySelectorAll('.catBtn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.catBtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.cat = b.dataset.cat;
+    renderHUD();
+  });
+});
+// 月份滑块
+const monthSlider = document.getElementById('monthSlider');
+function updateSliderBg(){
+  monthSlider.style.setProperty('--p', ((monthSlider.value-1)/11*100) + '%');
+}
+monthSlider.addEventListener('input', e=>{
+  state.month = +e.target.value;
+  const names = ['1月','2月','3月','4月','5月','6月','7月','8月','9月（开学季）','10月（国庆）','11月（双11）','12月（圣诞）'];
+  document.getElementById('monthCur').textContent = names[state.month-1] + ' · 季节修正 ' + (DATA.season[state.month-1]>=0?'+':'') + (DATA.season[state.month-1]*100).toFixed(0) + '%';
+  updateSliderBg();
+  renderHUD();
+});
+updateSliderBg();
+
+// ============== 动画循环 ==============
+let t = 0;
+function animate(){
+  t += 0.016;
+  if (particles){
+    const pos = particles.geometry.attributes.position.array;
+    const N = pos.length/3;
+    for (let i=0;i<N;i++){
+      if (axes[i]===0){
+        pos[i*3] += speeds[i];
+        if (pos[i*3]>500) pos[i*3]=-500;
+      } else {
+        pos[i*3+2] += speeds[i];
+        if (pos[i*3+2]>500) pos[i*3+2]=-500;
+      }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  }
+  metroGroups.forEach((grp, idx)=>{
+    grp.children.forEach(ch=>{
+      if (ch.userData.baseR){
+        const k = 1 + 0.04*Math.sin(t*1.4 + ch.userData.phase + idx);
+        ch.scale.set(k,k,k);
+      }
+    });
+  });
+  beam.material.opacity = 0.14 + 0.08*Math.sin(t*2);
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+renderHUD();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

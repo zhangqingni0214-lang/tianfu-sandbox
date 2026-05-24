@@ -1,0 +1,3589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B 风格 · 商业落地型沙盘 v2 · 天府国际金融中心</title>
+<link rel="stylesheet" href="lib/styles.css">
+<style>
+  body { overflow: hidden; height: 100vh; }
+  :root {
+    --rail-w: 400px;
+    --top-h: 60px;
+  }
+
+  /* ============ 顶部命令栏 ============ */
+  .cmd-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--top-h);
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; padding: 0 14px; gap: 8px;
+    z-index: 50;
+  }
+  .cmd-bar .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .cmd-bar .brand .logo {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--ink-1), #3a3a3c);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .cmd-bar .brand .ver {
+    font-size: 9px; padding: 2px 6px; border-radius: 6px;
+    background: linear-gradient(135deg, #2d6cdf, #6aa8ff);
+    color: white; font-weight: 600; letter-spacing: 0.5px;
+    margin-left: 6px;
+  }
+  @media (max-width: 1280px){
+    .cmd-bar .brand .brand-name { display: none; }    /* 窄屏只保留 logo */
+  }
+
+  .cmd-bar .spacer { flex: 1; min-width: 0; }
+
+  .cmd-bar .group {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border-radius: 10px;
+    background: rgba(245,247,250,0.7);
+    flex-shrink: 0;
+  }
+  .cmd-bar .group .glab {
+    font-size: 10px; color: var(--ink-3); letter-spacing: 0.3px;
+    font-weight: 600; white-space: nowrap;
+  }
+
+  /* 业态 segmented */
+  .seg-ctrl {
+    display: inline-flex; background: rgba(245,247,250,0.7);
+    border-radius: 10px; padding: 3px; gap: 2px;
+  }
+  .seg-ctrl .sg {
+    padding: 5px 12px; font-size: 11px; border-radius: 7px;
+    cursor: pointer; color: var(--ink-2); font-weight: 500;
+    transition: all 0.18s;
+  }
+  .seg-ctrl .sg.active { background: white; color: var(--ink-1); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .seg-ctrl .sg:hover:not(.active) { color: var(--ink-1); }
+
+  /* 时段 */
+  .period-ctrl { display: inline-flex; background: rgba(245,247,250,0.7); border-radius: 10px; padding: 3px; gap: 2px; }
+  .period-ctrl .p {
+    padding: 5px 11px; font-size: 11px; border-radius: 7px;
+    cursor: pointer; color: var(--ink-2); font-weight: 500; transition: all 0.18s;
+  }
+  .period-ctrl .p.active { background: var(--ink-1); color: white; }
+
+  /* 铺位 select */
+  .spot-sel {
+    padding: 5px 6px 5px 8px; border: none;
+    background: rgba(255,255,255,0.6); border-radius: 8px;
+    font-family: inherit; font-size: 11px; color: var(--ink-1); cursor: pointer;
+    outline: none; font-weight: 500;
+    min-width: 0;     /* 让 flex 能挤压 */
+  }
+  .spot-sel:hover { background: white; }
+
+  /* 步骤箭头 + 分隔符 */
+  .step-arrow {
+    font-size: 14px; color: var(--ink-3); font-weight: 600;
+    user-select: none;
+  }
+  .step-divider {
+    width: 1px; height: 22px; background: rgba(0,0,0,0.08);
+    margin: 0 2px;
+  }
+  /* 步骤组在没选时的视觉提示 */
+  .group.step { transition: background 0.2s; }
+  /* 步骤序号小徽章 */
+  .step-num {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white; font-size: 9px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* 顶栏右侧小按钮（单字符紧凑） */
+  .topbar-btn {
+    width: 28px; height: 28px; padding: 0; font-size: 14px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.04); border: none;
+    color: var(--ink-2); cursor: pointer; font-weight: 600;
+    transition: all 0.15s; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .topbar-btn:hover { background: rgba(0,0,0,0.10); color: var(--ink-1); }
+
+  /* 月份滑块（迷你版，嵌在命令栏） */
+  .month-mini { display: flex; align-items: center; gap: 8px; }
+  .month-mini input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 110px; height: 4px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary) var(--p,50%), #d8dde4 var(--p,50%), #d8dde4 100%);
+    border-radius: 2px; outline: none;
+  }
+  .month-mini input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 13px; height: 13px;
+    background: white; border: 2px solid var(--primary); border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(74,144,226,0.4); cursor: pointer;
+  }
+  .month-mini .mtxt {
+    font-size: 11px; color: var(--ink-1); font-weight: 600; min-width: 50px;
+    font-family: 'SF Mono', monospace;
+  }
+
+  /* ============ 主舞台 ============ */
+  .stage {
+    position: absolute; top: var(--top-h); left: 0; right: var(--rail-w); bottom: 0;
+  }
+  #scene { position: absolute; inset: 0; }
+
+  /* 沙盘上的浮动 score badge */
+  .stage-badge {
+    position: absolute; top: 22px; left: 22px;
+    padding: 14px 18px; min-width: 280px; max-width: 420px;
+    transition: padding 0.25s ease;
+  }
+  .stage-badge .label {
+    font-size: 10px; color: var(--ink-3); letter-spacing: 0.5px;
+    padding-right: 28px;     /* 给折叠按钮留位置 */
+  }
+  .stage-badge .spotname { font-size: 17px; font-weight: 600; margin-top: 2px; }
+  .stage-badge .addr { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .stage-badge .narrative {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--ink-2); line-height: 1.5;
+    overflow: hidden;
+  }
+  .stage-badge .narrative b { color: var(--ink-1); font-weight: 600; }
+  /* 折叠按钮 */
+  .stage-badge .collapse-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,0.05); color: var(--ink-3);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; line-height: 1; padding: 0;
+    transition: all 0.18s ease;
+  }
+  .stage-badge .collapse-btn:hover { background: rgba(0,0,0,0.10); color: var(--ink-1); }
+  .stage-badge .collapse-btn .ico { transition: transform 0.25s cubic-bezier(.22,.8,.36,1); }
+
+  /* 折叠态：只保留 label，其它收起；面板自身缩成一颗小药丸 */
+  .stage-badge.collapsed { padding: 8px 14px; min-width: 0; cursor: pointer; }
+  .stage-badge.collapsed .spotname,
+  .stage-badge.collapsed .addr,
+  .stage-badge.collapsed .narrative { display: none; }
+  .stage-badge.collapsed .label {
+    font-size: 11px; color: var(--ink-2); padding-right: 22px;
+    font-weight: 600;
+  }
+  .stage-badge.collapsed .label::before {
+    content: '📍 '; margin-right: 4px;
+  }
+  .stage-badge.collapsed .collapse-btn { top: 6px; right: 6px; width: 18px; height: 18px; font-size: 11px; }
+  .stage-badge.collapsed .collapse-btn .ico { transform: rotate(180deg); }
+
+  /* 右下：图例 + 提示 */
+  .stage-hint {
+    position: absolute; bottom: 18px; left: 22px;
+    padding: 10px 14px; font-size: 10px; color: var(--ink-2);
+  }
+  .stage-hint .row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+  .stage-hint .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .stage-hint .hint { color: var(--ink-3); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+
+  /* ============ 右侧仪表盘 ============ */
+  .rail {
+    position: fixed; top: var(--top-h); right: 0; bottom: 0; width: var(--rail-w);
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(28px);
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 16px 16px 24px;
+    z-index: 40;
+  }
+  .rail-card {
+    background: rgba(255,255,255,0.78);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 4px 16px rgba(60,80,110,0.06);
+  }
+  .rail-card h3 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+    color: var(--ink-1); display: flex; align-items: center; justify-content: space-between;
+  }
+  .rail-card h3 .tag {
+    font-size: 9px; padding: 2px 7px; border-radius: 6px;
+    background: rgba(0,0,0,0.05); color: var(--ink-3); font-weight: 600;
+  }
+  .rail-card .sub-h {
+    font-size: 10px; color: var(--ink-3); margin-top: 3px; font-weight: 400;
+  }
+  .rail-card .insight {
+    margin-top: 10px; padding: 8px 10px;
+    background: rgba(74,144,226,0.06); border-left: 2px solid var(--primary);
+    border-radius: 6px;
+    font-size: 11px; color: var(--ink-2); line-height: 1.55;
+  }
+  .rail-card .insight b { color: var(--ink-1); font-weight: 600; }
+  .rail-card .insight.warn { background: rgba(255,149,0,0.07); border-left-color: var(--orange); }
+  .rail-card .insight.good { background: rgba(52,199,89,0.07); border-left-color: var(--green); }
+  .rail-card .insight.bad { background: rgba(255,59,48,0.07); border-left-color: var(--red); }
+
+  /* HERO Card */
+  .hero-card {
+    background: linear-gradient(135deg, #1d1d1f, #2c2c2e);
+    color: white; padding: 20px 22px;
+    border-radius: 16px; margin-bottom: 12px;
+    position: relative; overflow: hidden;
+  }
+  .hero-card::before {
+    content: ''; position: absolute; top: -40%; right: -20%;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.25), transparent 70%);
+  }
+  .hero-card .htop { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1; }
+  .hero-card .htop .lab { font-size: 10px; color: rgba(255,255,255,0.55); letter-spacing: 0.6px; }
+  .hero-card .htop .v { font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .hero-card .score-row {
+    margin-top: 14px; display: flex; align-items: baseline; gap: 10px; position: relative; z-index: 1;
+  }
+  .hero-card .score-row .big {
+    font-size: 56px; font-weight: 700; line-height: 1; color: var(--gold);
+    font-family: 'SF Pro Display', -apple-system, sans-serif;
+  }
+  .hero-card .score-row .of { font-size: 18px; color: rgba(255,255,255,0.4); }
+  .hero-card .score-row .lab { font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; margin-left: auto; }
+  .hero-card .kpis {
+    margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    position: relative; z-index: 1;
+  }
+  .hero-card .kp {
+    background: rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px;
+  }
+  .hero-card .kp .k { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
+  .hero-card .kp .vv { font-size: 17px; font-weight: 700; margin-top: 2px; font-family: 'SF Mono', monospace; }
+  .hero-card .kp .vv .u { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 2px; font-weight: 500; }
+  .hero-card .kp .delta { font-size: 9px; margin-left: 4px; }
+  .hero-card .kp .up { color: var(--green); }
+  .hero-card .kp .dn { color: var(--red); }
+
+  /* 雷达 */
+  #radarCanvas { width: 100%; height: 200px; margin-top: 8px; }
+
+  /* 客群条形（4 类） */
+  .seg-bars { margin-top: 10px; }
+  .seg-bar { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 11px; }
+  .seg-bar .ln { width: 60px; color: var(--ink-2); }
+  .seg-bar .b { flex: 1; height: 8px; border-radius: 4px; background: #eef2f7; overflow: hidden; }
+  .seg-bar .b > div { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .seg-bar .vv { width: 56px; text-align: right; font-weight: 600; font-family: 'SF Mono', monospace; }
+
+  /* U 曲线 */
+  #ucCanvas { width: 100%; height: 110px; margin-top: 8px; }
+
+  /* 5Y 现金流 */
+  #cfMini { width: 100%; height: 130px; margin-top: 6px; }
+  .cf-row { display: flex; gap: 10px; margin-top: 6px; font-size: 10px; }
+  .cf-row .it { flex: 1; padding: 6px 8px; background: rgba(245,247,250,0.7); border-radius: 7px; text-align: center; }
+  .cf-row .it .k { font-size: 9px; color: var(--ink-3); }
+  .cf-row .it .v { font-size: 12px; font-weight: 700; margin-top: 1px; font-family: 'SF Mono', monospace; }
+
+  /* 健康检查指标 */
+  .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .health-grid .h-item {
+    padding: 8px 10px; background: rgba(245,247,250,0.65); border-radius: 8px;
+    border-left: 3px solid var(--ink-3);
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .health-grid .h-item.good { border-left-color: var(--green); }
+  .health-grid .h-item.warn { border-left-color: var(--orange); }
+  .health-grid .h-item.bad { border-left-color: var(--red); }
+  .health-grid .h-item .l { font-size: 9px; color: var(--ink-3); letter-spacing: 0.3px; }
+  .health-grid .h-item .v { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
+  .health-grid .h-item .desc { font-size: 9px; color: var(--ink-3); margin-top: 2px; }
+
+  /* 未选齐时：只显示空态卡，所有数据卡隐藏 */
+  .rail .hero-card,
+  .rail .rail-card { display: none; }
+  .rail.ready .hero-card,
+  .rail.ready .rail-card { display: block; }
+  .rail.ready .rail-empty { display: none; }
+
+  /* 仪表盘空态 */
+  .rail-empty {
+    margin-top: 60px; padding: 40px 24px; text-align: center;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(60,80,110,0.06);
+  }
+  .rail-empty .emoji { font-size: 44px; margin-bottom: 14px; }
+  .rail-empty h3 { font-size: 16px; font-weight: 700; color: var(--ink-1); }
+  .rail-empty p {
+    font-size: 12px; color: var(--ink-3); margin-top: 10px; line-height: 1.7;
+  }
+  .rail-empty p b { color: var(--ink-1); font-weight: 600; }
+  .rail-empty .todo {
+    list-style: none; margin: 22px auto 0; max-width: 200px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .rail-empty .todo li {
+    padding: 8px 14px; border-radius: 10px;
+    background: rgba(245,247,250,0.7); color: var(--ink-2);
+    font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+    text-align: left;
+  }
+  .rail-empty .todo li::before {
+    content: '○'; color: var(--ink-3); font-size: 14px;
+  }
+  .rail-empty .todo li.done::before { content: '✓'; color: var(--green); font-weight: 700; }
+  .rail-empty .todo li.done { color: var(--ink-1); }
+
+  /* ============ 小人探索 · 游戏化 ============ */
+  /* 初始任务提示 */
+  .intro-tip {
+    position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    padding: 10px 22px; border-radius: 999px;
+    background: linear-gradient(135deg, rgba(29,29,31,0.92), rgba(58,58,60,0.92));
+    color: white; font-size: 12px; letter-spacing: 0.4px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.25);
+    z-index: 30; display: flex; align-items: center; gap: 8px;
+    transition: all 0.4s cubic-bezier(.22,.8,.36,1);
+  }
+  .intro-tip.hide { opacity: 0; transform: translate(-50%, -20px); pointer-events: none; }
+  .intro-tip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.4; }
+  }
+
+  /* 建筑详情浮层 */
+  .b-popup {
+    position: absolute; pointer-events: none; opacity: 0;
+    transform: translate(-50%, -100%) translateY(-12px) scale(0.96);
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(.22,.8,.36,1);
+    padding: 14px 16px; min-width: 260px; max-width: 320px;
+    z-index: 25;
+  }
+  .b-popup.show { opacity: 1; pointer-events: auto;
+    transform: translate(-50%, -100%) translateY(-18px) scale(1); }
+  .b-popup::after {
+    content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent;
+    border-top: 8px solid rgba(255,255,255,0.85);
+  }
+  .b-popup .b-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .b-popup .b-name { font-size: 14px; font-weight: 700; }
+  .b-popup .b-type { font-size: 9px; padding: 2px 8px; border-radius: 6px;
+    background: rgba(212,175,55,0.18); color: #6b5008; font-weight: 600;
+    letter-spacing: 0.4px; white-space: nowrap; }
+  .b-popup .b-type.shop { background: rgba(74,144,226,0.18); color: var(--primary-dark); }
+  .b-popup .b-type.metro { background: rgba(52,199,89,0.18); color: #1f7e3a; }
+  .b-popup .b-type.res { background: rgba(255,149,0,0.18); color: #8a5a00; }
+  .b-popup .b-close {
+    position: absolute; top: 8px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,0.04); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--ink-3); border: none;
+  }
+  .b-popup .b-close:hover { background: rgba(0,0,0,0.08); color: var(--ink-1); }
+  .b-popup .b-meta {
+    margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    font-size: 11px;
+  }
+  .b-popup .b-meta .it { background: rgba(245,247,250,0.7); padding: 6px 10px; border-radius: 8px; }
+  .b-popup .b-meta .it .k { font-size: 9px; color: var(--ink-3); letter-spacing: 0.3px; }
+  .b-popup .b-meta .it .v { font-size: 12px; font-weight: 600; margin-top: 1px; font-family: 'SF Mono', monospace; }
+  .b-popup .b-narr {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--ink-2); line-height: 1.55;
+  }
+  .b-popup .b-narr b { color: var(--ink-1); font-weight: 600; }
+  .b-popup .b-action {
+    margin-top: 10px; display: flex; gap: 6px;
+  }
+  .b-popup .b-action .btn-mini {
+    flex: 1; font-size: 11px; padding: 7px 10px; border-radius: 8px;
+    background: var(--ink-1); color: white; border: none;
+    cursor: pointer; font-weight: 500;
+  }
+  .b-popup .b-action .btn-mini.ghost {
+    background: rgba(0,0,0,0.04); color: var(--ink-2);
+  }
+  .b-popup .b-action .btn-mini:hover { transform: translateY(-1px); }
+
+  /* "Walking..." 状态指示 */
+  .walking-bar {
+    position: absolute; top: 76px; left: 50%; transform: translateX(-50%);
+    padding: 6px 14px; border-radius: 999px;
+    background: rgba(74,144,226,0.92); color: white;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.3px;
+    opacity: 0; transition: opacity 0.25s ease;
+    z-index: 28; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(74,144,226,0.4);
+  }
+  .walking-bar.show { opacity: 1; }
+  .walking-bar .spinner {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid white; border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .walking-bar .walking-cancel {
+    margin-left: 8px; padding: 0; width: 18px; height: 18px;
+    border: none; border-radius: 50%;
+    background: rgba(255,255,255,0.22); color: white;
+    cursor: pointer; font-size: 14px; line-height: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .walking-bar .walking-cancel:hover { background: rgba(255,255,255,0.40); }
+
+  /* KPI 数值变化高亮 */
+  @keyframes flashUp   { 0%{background:rgba(52,199,89,0); } 30%{background:rgba(52,199,89,0.35); } 100%{background:rgba(52,199,89,0); } }
+  @keyframes flashDown { 0%{background:rgba(255,59,48,0); } 30%{background:rgba(255,59,48,0.30); } 100%{background:rgba(255,59,48,0); } }
+  .flash-up   { animation: flashUp 1.4s ease-out; border-radius:6px; }
+  .flash-down { animation: flashDown 1.4s ease-out; border-radius:6px; }
+
+  /* 首次教程 overlay */
+  .tutorial-mask {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(20,30,50,0.55);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .tutorial-mask.show { opacity: 1; pointer-events: auto; }
+  .tutorial-card {
+    background: white; border-radius: 18px; max-width: 480px; width: 88vw;
+    padding: 32px 32px 22px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.32);
+    transform: translateY(20px) scale(0.96);
+    transition: transform 0.32s cubic-bezier(.22,.8,.36,1);
+  }
+  .tutorial-mask.show .tutorial-card { transform: translateY(0) scale(1); }
+  .tutorial-card .emoji { font-size: 44px; text-align: center; margin-bottom: 12px; }
+  .tutorial-card h2 { font-size: 18px; font-weight: 700; text-align: center; }
+  .tutorial-card .desc { font-size: 13px; color: var(--ink-2); text-align: center; margin-top: 10px; line-height: 1.6; }
+  .tutorial-card .steps {
+    margin-top: 22px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .tutorial-card .steps .s {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: rgba(245,247,250,0.7); border-radius: 12px;
+    font-size: 12px; color: var(--ink-2);
+  }
+  .tutorial-card .steps .s .n {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--ink-1); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .tutorial-card .steps .s b { color: var(--ink-1); font-weight: 600; }
+  .tutorial-card .pager {
+    display: flex; justify-content: center; gap: 6px; margin-top: 18px;
+  }
+  .tutorial-card .pager .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(0,0,0,0.10);
+    transition: all 0.2s;
+  }
+  .tutorial-card .pager .dot.active { background: var(--ink-1); width: 18px; border-radius: 4px; }
+  .tutorial-card .actions {
+    margin-top: 20px; display: flex; gap: 8px; justify-content: space-between;
+  }
+  .tutorial-card .actions button {
+    padding: 9px 18px; font-size: 12px; font-weight: 500;
+    border: none; border-radius: 10px; cursor: pointer;
+  }
+  .tutorial-card .actions .skip { background: transparent; color: var(--ink-3); }
+  .tutorial-card .actions .next { background: var(--ink-1); color: white; }
+  .tutorial-card .actions .next:hover { background: #000; }
+
+  /* 快照对比 */
+  .snap-btn {
+    position: absolute; top: 12px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.16); color: white; border: none;
+    cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+  }
+  .snap-btn:hover { background: rgba(255,255,255,0.30); transform: scale(1.08); }
+  .snap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .snap-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translate(-50%, 30px);
+    z-index: 50; opacity: 0; pointer-events: none;
+    transition: all 0.32s cubic-bezier(.22,.8,.36,1);
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(28px);
+    border: 1px solid rgba(255,255,255,0.6); border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(60,80,110,0.16);
+    padding: 12px; display: flex; gap: 10px; align-items: center;
+    max-width: calc(100vw - 480px);
+  }
+  .snap-bar.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .snap-card {
+    background: rgba(245,247,250,0.85); border-radius: 12px;
+    padding: 10px 12px; min-width: 180px;
+    position: relative; cursor: pointer;
+    transition: all 0.18s;
+  }
+  .snap-card:hover { background: white; }
+  .snap-card .name { font-size: 11px; font-weight: 600; padding-right: 22px; }
+  .snap-card .meta { font-size: 9px; color: var(--ink-3); margin-top: 1px; }
+  .snap-card .row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; }
+  .snap-card .row .k { color: var(--ink-3); }
+  .snap-card .row .v { font-weight: 700; font-family: 'SF Mono', monospace; }
+  .snap-card .rm {
+    position: absolute; top: 6px; right: 8px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(0,0,0,0.06); border: none; cursor: pointer;
+    font-size: 11px; line-height: 11px; color: var(--ink-3);
+  }
+  .snap-card .rm:hover { background: rgba(255,59,48,0.20); color: var(--red); }
+  .snap-bar .snap-hint {
+    font-size: 11px; color: var(--ink-3); padding: 0 8px;
+  }
+
+  /* 重置视角按钮 */
+  .view-reset-btn {
+    position: absolute; bottom: 64px; left: 22px;
+    padding: 8px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+    border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
+    font-size: 11px; font-weight: 500; color: var(--ink-2);
+    box-shadow: 0 4px 14px rgba(60,80,110,0.08);
+    transition: all 0.18s;
+  }
+  .view-reset-btn:hover {
+    background: white; color: var(--ink-1); transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(60,80,110,0.12);
+  }
+
+  /* 鼠标在场景上时变指针 */
+  #scene canvas { cursor: pointer; }
+  #scene canvas.walking { cursor: progress; }
+
+  /* ============ 二级沙盘 Level 2 Overlay ============ */
+  .level2 {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(232,236,242,0.65);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.32s ease;
+    display: flex; flex-direction: column;
+  }
+  .level2.show { opacity: 1; pointer-events: auto; }
+
+  .l2-shell {
+    margin: 50px 60px 50px; flex: 1;
+    background: rgba(255,255,255,0.92);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: 0 28px 80px rgba(20,40,80,0.18), 0 4px 14px rgba(20,40,80,0.08);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transform: translateY(30px) scale(0.985);
+    transition: transform 0.4s cubic-bezier(.22,.8,.36,1);
+  }
+  .level2.show .l2-shell { transform: translateY(0) scale(1); }
+
+  /* 顶栏 */
+  .l2-top {
+    height: 64px; padding: 0 22px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(252,253,254,0.7);
+  }
+  .l2-back {
+    padding: 7px 13px; border-radius: 10px; font-size: 12px;
+    background: rgba(0,0,0,0.04); color: var(--ink-2);
+    cursor: pointer; border: none; font-weight: 500;
+  }
+  .l2-back:hover { background: rgba(0,0,0,0.07); }
+  .l2-title { display: flex; flex-direction: column; flex: 1; }
+  .l2-title .nm { font-size: 16px; font-weight: 700; }
+  .l2-title .sub { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+  .l2-stats { display: flex; gap: 14px; }
+  .l2-stats .s {
+    text-align: right;
+  }
+  .l2-stats .k { font-size: 9px; color: var(--ink-3); letter-spacing: 0.4px; text-transform: uppercase; }
+  .l2-stats .v { font-size: 15px; font-weight: 700; font-family: 'SF Mono', monospace; }
+  .l2-stats .v.good { color: var(--green); }
+  .l2-stats .v.warn { color: var(--orange); }
+  .l2-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(0,0,0,0.04); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--ink-3);
+  }
+  .l2-close:hover { background: rgba(0,0,0,0.08); color: var(--ink-1); }
+
+  /* 三栏布局 */
+  .l2-body {
+    flex: 1; display: grid; grid-template-columns: 200px 1fr 320px;
+    gap: 0; overflow: hidden;
+  }
+
+  /* 左：楼层列表 */
+  .l2-floors {
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 12px 10px;
+  }
+  .floor-summary {
+    padding: 10px 12px; margin: 0 0 10px;
+    background: rgba(212,175,55,0.10);
+    border-radius: 10px;
+    font-size: 11px;
+  }
+  .floor-summary .row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .floor-summary .k { color: var(--ink-3); }
+  .floor-summary .v { font-weight: 600; font-family:'SF Mono', monospace; }
+
+  .floor-item {
+    padding: 9px 12px; border-radius: 10px;
+    cursor: pointer; font-size: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 3px;
+    transition: all 0.16s;
+  }
+  .floor-item:hover { background: rgba(0,0,0,0.04); }
+  .floor-item.active {
+    background: var(--ink-1); color: white;
+  }
+  .floor-item.active .desc { color: rgba(255,255,255,0.55); }
+  .floor-item.active .cnt { color: rgba(255,255,255,0.85); }
+  .floor-item .info { display: flex; flex-direction: column; }
+  .floor-item .nm { font-weight: 600; }
+  .floor-item .desc { font-size: 10px; color: var(--ink-3); margin-top: 1px; }
+  .floor-item .cnt {
+    font-size: 11px; color: var(--ink-2);
+    font-family:'SF Mono', monospace;
+  }
+
+  /* 中：楼层平面图 */
+  .l2-plan {
+    position: relative;
+    background: linear-gradient(180deg, #f5f7fa 0%, #e9eef4 100%);
+    overflow: hidden;
+  }
+  #planCanvas { display: block; width: 100%; height: 100%; }
+  .plan-help {
+    position: absolute; bottom: 12px; left: 12px;
+    font-size: 10px; color: var(--ink-3);
+    background: rgba(255,255,255,0.6); padding: 5px 10px; border-radius: 8px;
+    pointer-events: none;
+  }
+  .plan-legend {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,0.85); padding: 8px 12px; border-radius: 10px;
+    font-size: 10px; max-width: 200px;
+  }
+  .plan-legend .lg-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+  .plan-legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* 右：单元详情 */
+  .l2-unit {
+    border-left: 1px solid var(--line);
+    background: rgba(252,253,254,0.6);
+    overflow-y: auto;
+    padding: 20px 20px 24px;
+  }
+  .l2-unit .empty {
+    text-align: center; padding: 60px 16px;
+    font-size: 12px; color: var(--ink-3);
+  }
+  .unit-card .head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .unit-card .head .icon {
+    font-size: 32px; line-height: 1;
+  }
+  .unit-card .head .nm-wrap { flex: 1; }
+  .unit-card .head .nm { font-size: 17px; font-weight: 700; line-height: 1.3; }
+  .unit-card .head .uid { font-size: 10px; color: var(--ink-3); margin-top: 2px; font-family:'SF Mono', monospace; }
+  .unit-card .status {
+    font-size: 10px; padding: 3px 9px; border-radius: 6px; font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+  .unit-card .status.occupied { background: rgba(52,199,89,0.15); color: #1f7e3a; }
+  .unit-card .status.vacant   { background: rgba(255,149,0,0.18); color: #a06000; }
+  .unit-card .status.candidate{ background: linear-gradient(135deg, #b08a1f, #d4af37); color: white; }
+  .unit-card .type-tag {
+    display: inline-block; margin-top: 10px;
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 10px; font-weight: 600;
+    background: rgba(0,0,0,0.05); color: var(--ink-2);
+  }
+  .unit-card .stats {
+    margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .unit-card .stat-it {
+    padding: 10px 12px; background: rgba(245,247,250,0.7); border-radius: 10px;
+  }
+  .unit-card .stat-it .k { font-size: 10px; color: var(--ink-3); }
+  .unit-card .stat-it .v {
+    font-size: 16px; font-weight: 700; margin-top: 2px;
+    font-family:'SF Mono', monospace;
+  }
+  .unit-card .narr {
+    margin-top: 14px; padding: 10px 12px;
+    background: rgba(74,144,226,0.06); border-left: 2px solid var(--primary);
+    border-radius: 8px;
+    font-size: 11px; color: var(--ink-2); line-height: 1.6;
+  }
+  .unit-card .narr b { color: var(--ink-1); font-weight: 600; }
+  .unit-card .actions {
+    margin-top: 14px; display: flex; gap: 6px;
+  }
+  .unit-card .actions .btn-act {
+    flex: 1; padding: 8px 12px; border-radius: 9px;
+    background: var(--ink-1); color: white; border: none;
+    font-size: 11px; font-weight: 500; cursor: pointer;
+  }
+  .unit-card .actions .btn-act.ghost {
+    background: rgba(0,0,0,0.04); color: var(--ink-2);
+  }
+  .unit-card .actions .btn-act:hover { transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- 顶部命令栏 -->
+<div class="cmd-bar">
+  <div class="brand" title="商业落地型沙盘 v2">
+    <div class="logo">司</div>
+    <span class="brand-name">商业沙盘<span class="ver">v2</span></span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- 业态 L1 + L2 -->
+  <div class="group step">
+    <span class="step-num">1</span>
+    <span class="glab">业态</span>
+    <select class="spot-sel" id="catL1" style="max-width:96px;"></select>
+    <select class="spot-sel" id="catL2" style="max-width:128px;"></select>
+  </div>
+
+  <span class="step-arrow">›</span>
+
+  <!-- 铺位选择 -->
+  <div class="group step">
+    <span class="step-num">2</span>
+    <span class="glab">铺位</span>
+    <select class="spot-sel" id="spotSelect" style="max-width:220px;"></select>
+  </div>
+
+  <span class="step-divider"></span>
+
+  <!-- 时段 -->
+  <div class="group">
+    <span class="glab">时段</span>
+    <div class="period-ctrl" id="periodCtrl">
+      <div class="p active" data-period="morning">早</div>
+      <div class="p" data-period="lunch">午</div>
+      <div class="p" data-period="evening">晚</div>
+      <div class="p" data-period="off">平</div>
+    </div>
+  </div>
+
+  <!-- 月份 -->
+  <div class="group">
+    <span class="glab">月份</span>
+    <div class="month-mini">
+      <input type="range" id="monthSlider" min="1" max="12" value="5">
+      <span class="mtxt" id="monthTxt">5月</span>
+    </div>
+  </div>
+
+  <!-- 顶栏右上 -->
+  <button class="topbar-btn" id="resetSelBtn" title="清空选择 (Space)">⟲</button>
+  <button class="topbar-btn" id="aboutBtn" title="关于">?</button>
+</div>
+
+<!-- 主舞台 -->
+<div class="stage">
+  <div id="scene"></div>
+
+  <!-- 沙盘左上：地块名 + 决策文案 -->
+  <div class="stage-badge panel" id="stageBadge">
+    <button class="collapse-btn" id="badgeCollapse" title="收起 / 展开">
+      <span class="ico">−</span>
+    </button>
+    <div class="label" id="badgeLabel">CURRENT LOT</div>
+    <div class="spotname" id="badgeName">—</div>
+    <div class="addr" id="badgeAddr">—</div>
+    <div class="narrative" id="narrative">—</div>
+  </div>
+
+  <!-- 顶部任务引导 -->
+  <div class="intro-tip" id="introTip">
+    <span class="dot"></span>
+    <span>👆 点击任意建筑，小人会走过去并展开详情</span>
+  </div>
+
+  <!-- 行走中状态条 -->
+  <div class="walking-bar" id="walkingBar">
+    <span class="spinner"></span>
+    <span id="walkingText">小人正在前往...</span>
+    <button class="walking-cancel" id="walkingCancel" title="取消寻路 (ESC)">×</button>
+  </div>
+
+  <!-- 沙盘左下：回到默认视角 -->
+  <button class="view-reset-btn" id="viewResetBtn" title="重置视角 (R)">⟲ 默认视角</button>
+
+  <!-- 首次教程 overlay -->
+  <div class="tutorial-mask" id="tutorialMask">
+    <div class="tutorial-card">
+      <div class="emoji">👋</div>
+      <h2>欢迎来到天府金融城商业沙盘</h2>
+      <div class="desc">3 步开始你的选址评估</div>
+      <div class="steps">
+        <div class="s"><span class="n">1</span><span>顶栏 <b>① 业态</b> 选大类（餐饮/零售/服务/娱乐）和细分</span></div>
+        <div class="s"><span class="n">2</span><span>顶栏 <b>② 铺位</b> 选一个候选铺位（30 选 1）</span></div>
+        <div class="s"><span class="n">3</span><span>右侧仪表盘即时显示 <b>评分 · 营收 · ROI · 风险</b></span></div>
+      </div>
+      <div class="desc" style="margin-top:14px;font-size:11px;color:var(--ink-3)">
+        💡 沙盘可以拖动旋转 / 滚轮缩放 / 双击空地回到默认视角<br>
+        点击建筑会让 <b>白色小人走过去</b> 并展开建筑详情
+      </div>
+      <div class="actions">
+        <button class="skip" id="tutSkip">不再提示</button>
+        <button class="next" id="tutNext">开始探索 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 建筑详情浮层（屏幕坐标跟随建筑） -->
+  <div class="b-popup panel" id="bPopup">
+    <button class="b-close" id="bClose">×</button>
+    <div class="b-head">
+      <div class="b-name" id="bName">—</div>
+      <span class="b-type" id="bType">建筑</span>
+    </div>
+    <div class="b-meta" id="bMeta"></div>
+    <div class="b-narr" id="bNarr"></div>
+    <div class="b-action" id="bAction"></div>
+  </div>
+
+  <!-- 快照对比浮窗 -->
+  <div class="snap-bar" id="snapBar">
+    <span class="snap-hint">📌 对比</span>
+    <div id="snapList" style="display:flex;gap:10px"></div>
+  </div>
+
+  <!-- 二级沙盘 Overlay -->
+  <div class="level2" id="level2">
+    <div class="l2-shell">
+      <div class="l2-top">
+        <button class="l2-back" id="l2Back">← 返回外部沙盘</button>
+        <div class="l2-title">
+          <div class="nm" id="l2Name">—</div>
+          <div class="sub" id="l2Sub">—</div>
+        </div>
+        <div class="l2-stats">
+          <div class="s"><div class="k">总铺位</div><div class="v" id="l2Total">—</div></div>
+          <div class="s"><div class="k">出租率</div><div class="v" id="l2Occ">—</div></div>
+          <div class="s"><div class="k">总面积</div><div class="v" id="l2Area">—</div></div>
+        </div>
+        <button class="l2-close" id="l2Close">×</button>
+      </div>
+      <div class="l2-body">
+        <!-- 左：楼层列表 -->
+        <div class="l2-floors" id="l2Floors"></div>
+        <!-- 中：平面图 -->
+        <div class="l2-plan">
+          <canvas id="planCanvas"></canvas>
+          <div class="plan-legend" id="planLegend"></div>
+          <div class="plan-help">🖱 hover 单元高亮 · 点击查看详情</div>
+        </div>
+        <!-- 右：单元详情 -->
+        <div class="l2-unit" id="l2Unit">
+          <div class="empty">点击中间任一格<br>查看商铺详情</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 沙盘左下：图例 + 提示 -->
+  <div class="stage-hint panel">
+    <div class="row"><span class="dot" style="background:#d4af37"></span>锚店 · IFC</div>
+    <div class="row"><span class="dot" style="background:#4a90e2"></span>候选铺位</div>
+    <div class="row"><span class="dot" style="background:#34c759"></span>地铁口（200m 半衰）</div>
+    <div class="row"><span class="dot" style="background:#ff3b30"></span>同业竞争</div>
+    <div class="row"><span class="dot" style="background:#5ac8fa"></span>互补业态</div>
+    <div class="hint">🖱 拖动旋转 · 滚轮缩放 · Hover 建筑高亮</div>
+  </div>
+</div>
+
+<!-- 右侧仪表盘 -->
+<div class="rail" id="rail">
+
+  <!-- 未选齐时的空态（默认 display:flex；选齐后 .rail.ready 会自动隐藏） -->
+  <div class="rail-empty" id="railEmpty">
+    <div class="emoji">🎯</div>
+    <h3>选择业态和铺位</h3>
+    <p>在顶栏先选 <b>① 业态大类 → 细分</b> → <b>② 候选铺位</b><br>这里即时显示评估结果</p>
+    <ul class="todo">
+      <li id="todoCat">业态</li>
+      <li id="todoSpot">铺位</li>
+    </ul>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero-card">
+    <button class="snap-btn" id="snapBtn" title="收藏当前评估到快照对比">📌</button>
+    <div class="htop">
+      <div>
+        <div class="lab">候选地块投资评估</div>
+        <div class="v" id="heroName">—</div>
+      </div>
+      <div style="text-align:right">
+        <div class="lab">类型</div>
+        <div class="v" id="heroCat">☕ 精品咖啡</div>
+      </div>
+    </div>
+    <div class="score-row">
+      <div class="big" id="heroScore">—</div>
+      <div class="of">/ 10</div>
+      <div class="lab">综合评分</div>
+    </div>
+    <div class="kpis">
+      <div class="kp"><div class="k">年营业额</div><div class="vv" id="heroRev">—<span class="u">万</span></div></div>
+      <div class="kp"><div class="k">ROI · 回收</div><div class="vv" id="heroROI">—</div></div>
+      <div class="kp"><div class="k">租金比</div><div class="vv" id="heroRent">—<span class="u">%</span></div></div>
+      <div class="kp"><div class="k">初始投入</div><div class="vv" id="heroInvest">—<span class="u">万</span></div></div>
+    </div>
+  </div>
+
+  <!-- 五维雷达 -->
+  <div class="rail-card">
+    <h3>五维评分 <span class="tag" id="radarMaxDim">—</span></h3>
+    <div class="sub-h">G 地理 · E 经济 · C 消费者 · K 竞争 · X 外部</div>
+    <canvas id="radarCanvas" width="540" height="360"></canvas>
+    <div class="insight" id="radarInsight">—</div>
+  </div>
+
+  <!-- 客群分层 -->
+  <div class="rail-card">
+    <h3>客群分层贡献 <span class="tag">分客群漏斗</span></h3>
+    <div class="sub-h">单日营收按 4 类客群拆分（¥）</div>
+    <div class="seg-bars">
+      <div class="seg-bar"><span class="ln">金融白领</span><div class="b"><div id="bar1" style="background:#4a90e2"></div></div><span class="vv" id="v1">—</span></div>
+      <div class="seg-bar"><span class="ln">周边居民</span><div class="b"><div id="bar2" style="background:#34c759"></div></div><span class="vv" id="v2">—</span></div>
+      <div class="seg-bar"><span class="ln">商旅访客</span><div class="b"><div id="bar3" style="background:#ff9500"></div></div><span class="vv" id="v3">—</span></div>
+      <div class="seg-bar"><span class="ln">其他</span><div class="b"><div id="bar4" style="background:#8e8e93"></div></div><span class="vv" id="v4">—</span></div>
+    </div>
+    <div class="insight" id="segInsight">—</div>
+  </div>
+
+  <!-- 竞争 U 曲线 -->
+  <div class="rail-card">
+    <h3>竞争修正 K · U 曲线 <span class="tag" id="ucTag">—</span></h3>
+    <div class="sub-h">同业数量 vs 修正系数 · 标当前+最优</div>
+    <canvas id="ucCanvas" width="540" height="220"></canvas>
+    <div class="insight" id="ucInsight">—</div>
+  </div>
+
+  <!-- 5Y 现金流 -->
+  <div class="rail-card">
+    <h3>5 年累计现金流 <span class="tag">IRR · NPV</span></h3>
+    <div class="sub-h">爬坡假设 70 / 90 / 100 / 105 / 108%</div>
+    <canvas id="cfMini" width="540" height="260"></canvas>
+    <div class="cf-row">
+      <div class="it"><div class="k">IRR</div><div class="v" id="cfIRR">—</div></div>
+      <div class="it"><div class="k">NPV(8%)</div><div class="v" id="cfNPV">—</div></div>
+      <div class="it"><div class="k">回本年</div><div class="v" id="cfBE">—</div></div>
+    </div>
+    <div class="insight" id="cfInsight">—</div>
+  </div>
+
+  <!-- 健康检查 -->
+  <div class="rail-card">
+    <h3>投资健康检查</h3>
+    <div class="sub-h">行业警戒线 vs 当前指标</div>
+    <div class="health-grid">
+      <div class="h-item" id="h-rent">
+        <div class="l">租金比</div>
+        <div class="v" id="hRentV">—</div>
+        <div class="desc">餐饮&lt;18% · 零售&lt;12%</div>
+      </div>
+      <div class="h-item" id="h-payback">
+        <div class="l">回收期</div>
+        <div class="v" id="hPaybackV">—</div>
+        <div class="desc">优秀&lt;2.5 · 可投&lt;4</div>
+      </div>
+      <div class="h-item" id="h-roi">
+        <div class="l">年化 ROI</div>
+        <div class="v" id="hROIV">—</div>
+        <div class="desc">优秀&gt;30% · 合格&gt;15%</div>
+      </div>
+      <div class="h-item" id="h-rev">
+        <div class="l">月坪效</div>
+        <div class="v" id="hRevV">—</div>
+        <div class="desc">咖啡&gt;800元/㎡·月</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { SPOTS, LANDMARKS, METRO } from './data/spots.js';
+import { CATEGORIES, L1_CATEGORIES, getL2sByL1 } from './data/categories.js';
+import { INTERIORS, CATEGORY_META, isEnterable } from './data/interiors.js';
+import { evaluateSpot, cashFlow5Y, getSameCount } from './lib/calc.js';
+
+// 初始：业态和铺位都未选。用户必须主动从下拉里选才会渲染评估
+const state = { cat:null, period:'morning', month:5, spotId:null };
+
+// 从 sessionStorage 还原（如果有）
+try {
+  const saved = JSON.parse(sessionStorage.getItem('sandbox.state') || '{}');
+  if (saved.cat !== undefined) state.cat = saved.cat;
+  if (saved.period) state.period = saved.period;
+  if (saved.month) state.month = saved.month;
+  if (saved.spotId !== undefined) state.spotId = saved.spotId;
+} catch(e){}
+function persistState(){
+  try {
+    sessionStorage.setItem('sandbox.state', JSON.stringify({
+      cat: state.cat, period: state.period, month: state.month, spotId: state.spotId,
+    }));
+  } catch(e){}
+}
+const PERIODS = {
+  morning: { mul:1.0,  tau:0.62, particles:340, lab:'早高峰' },
+  lunch:   { mul:1.35, tau:0.78, particles:480, lab:'午高峰' },
+  evening: { mul:1.15, tau:0.70, particles:380, lab:'晚高峰' },
+  off:     { mul:0.45, tau:0.30, particles:160, lab:'平峰' },
+};
+const MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+// 给 select 加 placeholder 项的工具
+function addPlaceholder(sel, text){
+  const ph = document.createElement('option');
+  ph.value = ''; ph.textContent = text;
+  ph.disabled = true; ph.selected = true;
+  sel.appendChild(ph);
+}
+
+// ============ 顶部控件 ============
+const spotSelect = document.getElementById('spotSelect');
+addPlaceholder(spotSelect, '请选择候选铺位...');
+// 按区域分组（基于铺位 address / id 关键词）
+function spotZoneOf(sp){
+  const a = sp.address || '';
+  if (a.includes('IFC') || a.includes('天府国际金融中心')) return '🏛 IFC 区';
+  if (a.includes('双子塔') || a.includes('金融城路')) return '🏙 双子塔区';
+  if (a.includes('in99') || a.includes('银泰')) return '🛍 in99 区';
+  if (a.includes('交子') || a.includes('华商金融') || a.includes('AFC') || a.includes('东方希望')) return '🏢 交子区';
+  return '🏡 住宅 / 配套';
+}
+const grouped = {};
+SPOTS.forEach(sp => {
+  const zone = spotZoneOf(sp);
+  (grouped[zone] = grouped[zone] || []).push(sp);
+});
+// 固定顺序：IFC → 双子塔 → in99 → 交子 → 住宅配套
+const zoneOrder = ['🏛 IFC 区', '🏙 双子塔区', '🛍 in99 区', '🏢 交子区', '🏡 住宅 / 配套'];
+zoneOrder.forEach(zone => {
+  if (!grouped[zone] || !grouped[zone].length) return;
+  const og = document.createElement('optgroup');
+  og.label = `${zone} (${grouped[zone].length})`;
+  grouped[zone].forEach(sp => {
+    const o = document.createElement('option');
+    o.value = sp.id;
+    o.textContent = `${sp.id} · ${sp.name.replace(/^[^·]+·\s*/, '')} ${sp.area}㎡`;
+    og.appendChild(o);
+  });
+  spotSelect.appendChild(og);
+});
+spotSelect.addEventListener('change', () => {
+  state.spotId = spotSelect.value || null;
+  rebuildSpotMarker();
+  refreshAll();
+});
+
+// ============ L1 + L2 业态双下拉 ============
+const catL1Sel = document.getElementById('catL1');
+const catL2Sel = document.getElementById('catL2');
+addPlaceholder(catL1Sel, '请选择大类...');
+L1_CATEGORIES.forEach(l1 => {
+  const opt = document.createElement('option');
+  opt.value = l1.id;
+  opt.textContent = `${l1.icon} ${l1.label}`;
+  catL1Sel.appendChild(opt);
+});
+// L2 默认就是"先选大类"
+addPlaceholder(catL2Sel, '先选大类');
+
+function populateL2(l1Id){
+  catL2Sel.innerHTML = '';
+  addPlaceholder(catL2Sel, '请选择细分...');
+  getL2sByL1(l1Id).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.icon} ${c.label}`;
+    catL2Sel.appendChild(opt);
+  });
+  // 不自动选 L2，留 placeholder 占位
+  state.cat = null;
+}
+catL1Sel.addEventListener('change', () => {
+  if (!catL1Sel.value) return;
+  populateL2(catL1Sel.value);
+  rebuildCompPoints();   // 仍清掉同业点
+  refreshAll();
+});
+catL2Sel.addEventListener('change', () => {
+  state.cat = catL2Sel.value || null;
+  rebuildCompPoints();
+  refreshAll();
+});
+
+// 清空选择按钮
+document.getElementById('resetSelBtn').addEventListener('click', () => {
+  state.cat = null; state.spotId = null;
+  catL1Sel.selectedIndex = 0;
+  catL2Sel.innerHTML = '';
+  addPlaceholder(catL2Sel, '先选大类');
+  spotSelect.selectedIndex = 0;
+  rebuildSpotMarker();
+  rebuildCompPoints();
+  refreshAll();
+});
+
+// 回到默认视角
+document.getElementById('viewResetBtn').addEventListener('click', camResetToDefault);
+// 取消寻路
+document.getElementById('walkingCancel').addEventListener('click', cancelWalk);
+// 首次教程
+(function(){
+  const seen = localStorage.getItem('sandbox.tutorialSeen');
+  const mask = document.getElementById('tutorialMask');
+  if (!seen){
+    setTimeout(() => mask.classList.add('show'), 400);
+  }
+  function close(remember){
+    mask.classList.remove('show');
+    if (remember) localStorage.setItem('sandbox.tutorialSeen', '1');
+  }
+  document.getElementById('tutSkip').addEventListener('click', () => close(true));
+  document.getElementById('tutNext').addEventListener('click', () => close(true));
+  mask.addEventListener('click', e => { if (e.target === mask) close(true); });
+  // 关于按钮也复用这个教程
+  document.getElementById('aboutBtn').addEventListener('click', () => {
+    mask.classList.add('show');
+  });
+})();
+
+// ============ 快照对比 ============
+const snaps = [];
+const MAX_SNAPS = 3;
+function takeSnapshot(){
+  if (!state.cat || !state.spotId){ alert('请先选业态和铺位'); return; }
+  if (snaps.length >= MAX_SNAPS){ alert('最多对比 ' + MAX_SNAPS + ' 个，请先移除一个'); return; }
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  const ev = evaluateSpot(sp, state.cat);
+  const seasonM = cat.season[state.month-1];
+  const periodMul = PERIODS[state.period].mul;
+  const yearRev = ev.yearRev * (1+seasonM) * (1 + (periodMul-1)*0.3);
+  const yearProfit = yearRev * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
+  const roi = yearProfit / ev.invest;
+  const payback = ev.invest / Math.max(0.1, yearProfit);
+  // 重复就跳过
+  if (snaps.some(s => s.spotId === state.spotId && s.cat === state.cat)){ alert('已收藏过'); return; }
+  snaps.push({
+    spotId: state.spotId, cat: state.cat, spotName: sp.name, catLabel: cat.label, catIcon: cat.icon,
+    score: ev.score, yearRev, roi, payback, period: state.period, month: state.month,
+  });
+  renderSnaps();
+}
+function removeSnap(i){ snaps.splice(i, 1); renderSnaps(); }
+function applySnap(s){
+  state.cat = s.cat; state.spotId = s.spotId; state.period = s.period; state.month = s.month;
+  // 同步 UI
+  catL1Sel.value = CATEGORIES[s.cat].L1;
+  populateL2(catL1Sel.value);
+  catL2Sel.value = s.cat; state.cat = s.cat;
+  spotSelect.value = s.spotId;
+  document.querySelectorAll('#periodCtrl .p').forEach(p => p.classList.toggle('active', p.dataset.period === s.period));
+  rebuildParticles(PERIODS[state.period].particles);
+  document.getElementById('monthSlider').value = s.month;
+  document.getElementById('monthTxt').textContent = MONTH_NAMES[s.month-1];
+  updateMonthBg();
+  rebuildSpotMarker(); rebuildCompPoints(); refreshAll();
+}
+function renderSnaps(){
+  const bar = document.getElementById('snapBar');
+  const list = document.getElementById('snapList');
+  list.innerHTML = '';
+  if (snaps.length === 0){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  snaps.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'snap-card';
+    card.innerHTML = `
+      <button class="rm" data-i="${i}" title="移除">×</button>
+      <div class="name">${s.spotName}</div>
+      <div class="meta">${s.catIcon} ${s.catLabel}</div>
+      <div class="row"><span class="k">评分</span><span class="v">${s.score.toFixed(1)}</span></div>
+      <div class="row"><span class="k">年营收</span><span class="v">${Math.round(s.yearRev)} 万</span></div>
+      <div class="row"><span class="k">ROI</span><span class="v" style="color:${s.roi>0.3?'var(--green)':s.roi>0?'var(--ink-1)':'var(--red)'}">${(s.roi*100).toFixed(0)}%</span></div>
+      <div class="row"><span class="k">回收</span><span class="v">${s.payback.toFixed(1)} 年</span></div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.matches('.rm')){ removeSnap(+e.target.dataset.i); return; }
+      applySnap(s);
+    });
+    list.appendChild(card);
+  });
+}
+document.getElementById('snapBtn').addEventListener('click', takeSnapshot);
+
+// KPI 数值闪烁高亮（变化时短暂闪绿/红）
+const _lastVals = new Map();
+function flashOnChange(id, newVal){
+  const old = _lastVals.get(id);
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (old !== undefined && old !== newVal){
+    el.classList.remove('flash-up', 'flash-down');
+    void el.offsetWidth;     // 强制重绘以重启动画
+    el.classList.add(newVal > old ? 'flash-up' : 'flash-down');
+  }
+  _lastVals.set(id, newVal);
+}
+
+// 双击地面回到默认视角
+renderer.domElement.addEventListener('dblclick', e => {
+  // 只有在没拾取到任何建筑时才视为"双击空地"
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(pickables());
+  if (!hits.length) camResetToDefault();
+});
+
+document.querySelectorAll('#periodCtrl .p').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#periodCtrl .p').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.period = b.dataset.period;
+  rebuildParticles(PERIODS[state.period].particles);
+  refreshAll();
+}));
+
+const monthSlider = document.getElementById('monthSlider');
+function updateMonthBg(){ monthSlider.style.setProperty('--p', ((monthSlider.value-1)/11*100)+'%'); }
+monthSlider.addEventListener('input', e => {
+  state.month = +e.target.value;
+  document.getElementById('monthTxt').textContent = MONTH_NAMES[state.month-1];
+  updateMonthBg();
+  refreshAll();
+});
+updateMonthBg();
+
+// ============ Three.js 场景（与 v1 同样的建筑布局，但呈现微调） ============
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+const stage = document.querySelector('.stage');
+function sizeRenderer(){
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+}
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xf0e8d8, 800, 1600);   // 暖沙雾
+const camera = new THREE.PerspectiveCamera(36, 1, 1, 4000);
+camera.position.set(400, 360, 500);
+sizeRenderer();
+camera.aspect = stage.clientWidth/stage.clientHeight;
+camera.updateProjectionMatrix();
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.07;
+controls.zoomSpeed = 2.8;     // 滚轮缩放灵敏度（默认 1.0，提高约 2.8 倍）
+controls.minDistance = 220; controls.maxDistance = 900;
+controls.maxPolarAngle = Math.PI*0.46;
+controls.target.set(0, 30, 0);
+// 记下默认视角，供"重置视角"按钮恢复
+const DEFAULT_CAM_POS = camera.position.clone();
+const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 30, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.88));
+const dir = new THREE.DirectionalLight(0xffffff, 1.15);
+dir.position.set(220, 380, 180); dir.castShadow = true;
+dir.shadow.mapSize.set(2048, 2048);
+const sd = 600;
+dir.shadow.camera.left=-sd; dir.shadow.camera.right=sd; dir.shadow.camera.top=sd; dir.shadow.camera.bottom=-sd;
+dir.shadow.camera.near=1; dir.shadow.camera.far=1200;
+dir.shadow.bias = -0.0002;
+scene.add(dir);
+const fillLight = new THREE.DirectionalLight(0xeaf2ff, 0.4);
+fillLight.position.set(-300, 200, -200); scene.add(fillLight);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000,2000),
+  new THREE.MeshStandardMaterial({color:0xe6dccc, roughness:0.92, metalness:0.02}));   // 暖沙底
+ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+const grid = new THREE.GridHelper(1400, 28, 0xc4b8a4, 0xd6cdb8);                       // 暖驼网格
+grid.position.y = 0.02; grid.material.transparent=true; grid.material.opacity=0.30; scene.add(grid);
+
+function road(x, z, w, l, rot=0){
+  const r = new THREE.Mesh(new THREE.PlaneGeometry(w, l),
+    new THREE.MeshStandardMaterial({color:0xb8ad98, roughness:0.95}));                  // 暖驼道路
+  r.rotation.x = -Math.PI/2; r.rotation.z = rot; r.position.set(x, 0.05, z);
+  r.receiveShadow = true; scene.add(r);
+  const lm = new THREE.Mesh(new THREE.PlaneGeometry(w-2, 0.5),
+    new THREE.MeshBasicMaterial({color:0xf5ecd8}));    // 米白色中线
+  lm.rotation.x = -Math.PI/2; lm.rotation.z = rot; lm.position.set(x, 0.06, z); scene.add(lm);
+}
+road(0,0,1200,28, Math.PI/2);
+road(0,0,1200,28, 0);
+
+// ============ 建筑外观工厂（按类型分化造型） ============
+const meshMap = new Map();   // building.id → 主体 mesh（用于 hover/click 拾取）
+
+function makeBuilding(b){
+  // 1) 判定 style
+  let style = 'office';
+  if (b.cat === 'build') style = 'construction';
+  else if (b.mall) style = 'mall';
+  else if (b.res) style = 'residential';
+  else if (b.anchor && b.h >= 180) style = 'glassTower';
+  else if (b.anchor) style = 'anchor';
+
+  // 2) 颜色配方 · 纪念碑谷低饱和柔色，与暖沙底高对比
+  const palette = {
+    glassTower:  { body: 0xbacad6, top: 0xd0dde4, podium: 0xa8b6c0 },  // 玻璃塔：雾蓝
+    anchor:      { body: 0xe8c8a8, top: 0xeed4ba, podium: 0xc4a484 },  // 锚店：暖桃
+    office:      { body: 0xd8dde2, top: 0xe4e8ec, podium: 0xb8bec4 },  // 写字楼：珍珠灰
+    mall:        { body: 0xe2bca0, top: 0xeac8b0, podium: 0xc09a80 },  // 商场：桃米
+    residential: { body: 0xddc8a4, top: 0xe6d4b4, podium: 0xc0a880 },  // 住宅：暖沙
+    construction:{ body: 0xb4c4be, top: 0xb4c4be, podium: 0xa4b6b0 },  // 在建：雾绿青
+  }[style];
+
+  // 3) 通用材质生成器
+  const matBody = new THREE.MeshPhysicalMaterial({
+    color: palette.body,
+    roughness: style === 'glassTower' ? 0.18 : 0.40,
+    metalness: style === 'glassTower' ? 0.38 : 0.12,
+    clearcoat: style === 'glassTower' ? 0.85 : 0.55,
+    clearcoatRoughness: 0.22,
+    envMapIntensity: 1.1,
+  });
+  const matTop = new THREE.MeshPhysicalMaterial({
+    color: palette.top, roughness: 0.30, metalness: 0.22,
+    clearcoat: 0.7, clearcoatRoughness: 0.25,
+  });
+  const matPodium = new THREE.MeshPhysicalMaterial({
+    color: palette.podium, roughness: 0.55, metalness: 0.08, clearcoat: 0.3,
+  });
+  const matGold = new THREE.MeshStandardMaterial({
+    color: 0xd4af37, metalness: 0.78, roughness: 0.28,
+    emissive: 0xd4af37, emissiveIntensity: 0.08,
+  });
+
+  const parts = [];
+
+  // ============ 商场 ============
+  if (style === 'mall'){
+    // 双层阶梯：宽下层 + 窄上层
+    const lowH = b.h * 0.62, highH = b.h - lowH;
+    const low = new THREE.Mesh(new THREE.BoxGeometry(b.w, lowH, b.d), matBody);
+    low.position.set(b.x, lowH/2, b.z);
+    low.castShadow = true; low.receiveShadow = true;
+    low.userData = b;
+    parts.push(low);
+
+    const high = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.82, highH, b.d*0.82), matTop);
+    high.position.set(b.x, lowH + highH/2, b.z);
+    high.castShadow = true; high.receiveShadow = true;
+    parts.push(high);
+
+    // 金色腰线（阶梯交接处）
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(b.w+1.5, 0.7, b.d+1.5), matGold);
+    trim.position.set(b.x, lowH + 0.4, b.z);
+    parts.push(trim);
+
+    // 顶上一颗低调金色 dot（招牌位）
+    const logo = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 1.5, 16), matGold);
+    logo.position.set(b.x, b.h + 0.75, b.z);
+    parts.push(logo);
+  }
+
+  // ============ 在建 ============
+  else if (style === 'construction'){
+    const body = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d),
+      new THREE.MeshPhysicalMaterial({color: palette.body, transparent: true, opacity: 0.55, roughness: 0.6}));
+    body.position.set(b.x, b.h/2, b.z);
+    body.castShadow = true; body.userData = b;
+    parts.push(body);
+    // 脚手架竖线
+    const pts = [];
+    const cols = 4, halfW = b.w/2, halfD = b.d/2;
+    for (let i=0; i<=cols; i++){
+      const xx = -halfW + (i/cols) * b.w;
+      pts.push(xx + b.x, 0, halfD + b.z);  pts.push(xx + b.x, b.h, halfD + b.z);
+      pts.push(xx + b.x, 0,-halfD + b.z);  pts.push(xx + b.x, b.h,-halfD + b.z);
+    }
+    for (let i=0; i<=3; i++){
+      const zz = -halfD + (i/3) * b.d;
+      pts.push( halfW + b.x, 0, zz + b.z);  pts.push( halfW + b.x, b.h, zz + b.z);
+      pts.push(-halfW + b.x, 0, zz + b.z);  pts.push(-halfW + b.x, b.h, zz + b.z);
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    parts.push(new THREE.LineSegments(geom,
+      new THREE.LineBasicMaterial({color: 0x8a96a4, transparent: true, opacity: 0.55})));
+  }
+
+  // ============ 高层（玻璃塔 / 写字楼 / 锚店 / 住宅） ============
+  else {
+    const hasPodium = b.h >= 80;
+    const podiumH = hasPodium ? Math.min(14, b.h * 0.10) : 0;
+    const podiumOverhang = hasPodium ? 3 : 0;
+
+    // —— 裙楼 ——
+    if (hasPodium){
+      const podium = new THREE.Mesh(
+        new THREE.BoxGeometry(b.w + podiumOverhang*2, podiumH, b.d + podiumOverhang*2),
+        matPodium
+      );
+      podium.position.set(b.x, podiumH/2, b.z);
+      podium.castShadow = true; podium.receiveShadow = true;
+      parts.push(podium);
+    }
+
+    // —— 主塔体 ——
+    const shaftStart = podiumH * 0.85;     // 与裙楼略有重叠
+    const shaftH = b.h - shaftStart;
+    const shaft = new THREE.Mesh(
+      new THREE.BoxGeometry(b.w, shaftH, b.d),
+      matBody
+    );
+    shaft.position.set(b.x, shaftStart + shaftH/2, b.z);
+    shaft.castShadow = true; shaft.receiveShadow = true;
+    shaft.userData = b;     // 主拾取点
+    parts.push(shaft);
+
+    // —— 窗格线（横向 + 竖向 微纹理）——
+    if (b.h >= 60){
+      const lpts = [];
+      const halfW = b.w/2, halfD = b.d/2;
+      // 横向：每 ~12m 一条腰线
+      const stripStep = 12;
+      const stripCount = Math.floor(shaftH / stripStep);
+      for (let i=1; i<stripCount; i++){
+        const yy = shaftStart + (i*stripStep);
+        lpts.push(-halfW, yy, -halfD,  halfW, yy, -halfD);
+        lpts.push( halfW, yy, -halfD,  halfW, yy,  halfD);
+        lpts.push( halfW, yy,  halfD, -halfW, yy,  halfD);
+        lpts.push(-halfW, yy,  halfD, -halfW, yy, -halfD);
+      }
+      // 竖向（仅住宅用，强调"楼栋"质感）
+      if (style === 'residential'){
+        const colN = 3;
+        for (let i=1; i<colN; i++){
+          const xx = -halfW + (i/colN) * b.w;
+          lpts.push(xx, shaftStart, -halfD,  xx, b.h, -halfD);
+          lpts.push(xx, shaftStart,  halfD,  xx, b.h,  halfD);
+        }
+      }
+      const lGeom = new THREE.BufferGeometry();
+      lGeom.setAttribute('position', new THREE.Float32BufferAttribute(lpts, 3));
+      const lines = new THREE.LineSegments(lGeom, new THREE.LineBasicMaterial({
+        color: style === 'glassTower' ? 0x9eb0c4 : (style === 'residential' ? 0xc9bba6 : 0xa8b0bc),
+        transparent: true, opacity: 0.42,
+      }));
+      lines.position.set(b.x, 0, b.z);
+      parts.push(lines);
+    }
+
+    // —— 顶部处理 ——
+    if (style === 'glassTower'){
+      // 两段渐收塔尖
+      const tip1H = 10, tip2H = 8;
+      const tip1 = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.7, tip1H, b.d*0.7), matTop);
+      tip1.position.set(b.x, b.h + tip1H/2, b.z);
+      tip1.castShadow = true; parts.push(tip1);
+
+      const tip2 = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.4, tip2H, b.d*0.4), matTop);
+      tip2.position.set(b.x, b.h + tip1H + tip2H/2, b.z);
+      tip2.castShadow = true; parts.push(tip2);
+
+      // 金色尖顶
+      const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.2, 6, 8), matGold);
+      spire.position.set(b.x, b.h + tip1H + tip2H + 3, b.z);
+      spire.castShadow = true; parts.push(spire);
+
+    } else if (style === 'anchor'){
+      // 锚店：薄金腰带（顶部下方 4m）
+      const band = new THREE.Mesh(new THREE.BoxGeometry(b.w + 0.6, 1.6, b.d + 0.6), matGold);
+      band.position.set(b.x, b.h - 4, b.z);
+      parts.push(band);
+      // 屋顶机房（很矮的薄盒子）
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.55, 5, b.d*0.55), matTop);
+      roof.position.set(b.x, b.h + 2.5, b.z);
+      roof.castShadow = true;
+      parts.push(roof);
+
+    } else if (style === 'office'){
+      // 写字楼：极简屋顶机房
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(b.w*0.5, 4, b.d*0.5), matTop);
+      roof.position.set(b.x, b.h + 2, b.z);
+      roof.castShadow = true;
+      parts.push(roof);
+
+    } else if (style === 'residential'){
+      // 住宅：浅米色坡顶（用薄盒子模拟）
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(b.w + 1, 2, b.d + 1), matPodium);
+      roof.position.set(b.x, b.h + 1, b.z);
+      roof.castShadow = true;
+      parts.push(roof);
+    }
+  }
+
+  return parts;
+}
+
+// 实例化所有建筑
+LANDMARKS.forEach(b => {
+  const parts = makeBuilding(b);
+  parts.forEach(p => scene.add(p));
+  // 把带 userData 的那一个（主体）注册到 meshMap
+  const main = parts.find(p => p.userData && p.userData.id === b.id);
+  if (main) meshMap.set(b.id, main);
+});
+
+const metroGroups = METRO.map(m => {
+  const g = new THREE.Group();
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(8, 32),
+    new THREE.MeshStandardMaterial({color:0x34c759, emissive:0x34c759, emissiveIntensity:0.6}));
+  disc.rotation.x = -Math.PI/2; disc.position.set(m.x, 0.5, m.z); g.add(disc);
+  [60,120,200,320].forEach((r, i) => {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(r-1.5, r+1.5, 64),
+      new THREE.MeshBasicMaterial({color:0x34c759, transparent:true, opacity:0.28-i*0.06, side:THREE.DoubleSide}));
+    ring.rotation.x = -Math.PI/2; ring.position.set(m.x, 0.35, m.z);
+    ring.userData = { baseR:r, phase:i*0.7 };
+    g.add(ring);
+  });
+  scene.add(g); return g;
+});
+
+// 候选铺位 · 地面轮廓圆盘 + 小金锥 pin（不抢高）
+let spotMarker = null, spotPin = null, spotOutline = null, spotBeam = null, spotRingPulse = null;
+
+// "未选铺位"时在 30 个候选位置上方悬浮金色↓箭头作提示
+let hintArrowGroup = new THREE.Group(); scene.add(hintArrowGroup);
+function rebuildHintArrows(){
+  while(hintArrowGroup.children.length) hintArrowGroup.remove(hintArrowGroup.children[0]);
+  if (state.spotId) return;     // 已选 → 不画
+  const arrowGeo = new THREE.ConeGeometry(2.5, 6, 12);
+  const arrowMat = new THREE.MeshStandardMaterial({
+    color: 0xd4af37, emissive: 0xd4af37, emissiveIntensity: 0.5,
+    metalness: 0.7, roughness: 0.3,
+  });
+  SPOTS.forEach((sp, i) => {
+    const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+    arrow.position.set(sp.x, 18, sp.z);
+    arrow.rotation.z = Math.PI;   // 朝下
+    arrow.userData = { baseY: 18, phase: i*0.5 };
+    hintArrowGroup.add(arrow);
+  });
+}
+// 初始建一次
+rebuildHintArrows();
+function rebuildSpotMarker(){
+  // 清旧
+  [spotMarker, spotPin, spotOutline, spotBeam, spotRingPulse].forEach(o => o && scene.remove(o));
+  spotMarker = spotPin = spotOutline = spotBeam = spotRingPulse = null;
+  rebuildHintArrows();    // 同时刷新"未选"金色提示箭头
+  if (!state.spotId) return;        // 未选铺位 → 不画
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  if (!sp) return;
+
+  // 1) 命中区：极扁的圆柱（半径 12，高 0.8，刚好能被 raycaster 选中）
+  spotMarker = new THREE.Mesh(
+    new THREE.CylinderGeometry(12, 12, 0.8, 32),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x4a90e2, emissive: 0x4a90e2, emissiveIntensity: 0.35,
+      roughness: 0.4, metalness: 0.2,
+      transparent: true, opacity: 0.55
+    })
+  );
+  spotMarker.position.set(sp.x, 0.5, sp.z);
+  spotMarker.userData = { ...sp, candidate: true, _isSpot: true, h: 6 };
+  scene.add(spotMarker);
+
+  // 2) 地面金边外圈（视觉强调，纯装饰）
+  spotOutline = new THREE.Mesh(
+    new THREE.RingGeometry(11.5, 13, 64),
+    new THREE.MeshBasicMaterial({
+      color: 0xd4af37, transparent: true, opacity: 0.85,
+      side: THREE.DoubleSide
+    })
+  );
+  spotOutline.rotation.x = -Math.PI/2;
+  spotOutline.position.set(sp.x, 0.95, sp.z);
+  scene.add(spotOutline);
+
+  // 3) 中央小金锥 pin（高度仅 6m，不挡建筑）
+  spotPin = new THREE.Mesh(
+    new THREE.ConeGeometry(1.6, 6, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0xd4af37, emissive: 0xd4af37, emissiveIntensity: 0.5,
+      metalness: 0.75, roughness: 0.32
+    })
+  );
+  spotPin.position.set(sp.x, 3.5, sp.z);
+  spotPin.castShadow = true;
+  scene.add(spotPin);
+
+  // 4) 蓝色细光柱（远距离可见，不挡建筑也行）
+  spotBeam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.6, 0.6, 240, 12, 1, true),
+    new THREE.MeshBasicMaterial({color: 0x4a90e2, transparent: true, opacity: 0.18, side: THREE.DoubleSide})
+  );
+  spotBeam.position.set(sp.x, 120, sp.z);
+  scene.add(spotBeam);
+
+  // 5) 地面脉冲环（金色）
+  spotRingPulse = new THREE.Mesh(
+    new THREE.RingGeometry(8, 9, 64),
+    new THREE.MeshBasicMaterial({color: 0xd4af37, transparent: true, opacity: 0.65, side: THREE.DoubleSide})
+  );
+  spotRingPulse.rotation.x = -Math.PI/2;
+  spotRingPulse.position.set(sp.x, 0.6, sp.z);
+  spotRingPulse.userData.t0 = performance.now();
+  scene.add(spotRingPulse);
+
+  // 摄像机缓动
+  const target = new THREE.Vector3(sp.x, 30, sp.z);
+  const start = controls.target.clone();
+  const t0 = performance.now();
+  function tween(){
+    const t = Math.min(1, (performance.now()-t0)/600);
+    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    controls.target.copy(start).lerp(target, e);
+    if (t<1) requestAnimationFrame(tween);
+  }
+  tween();
+}
+
+// 同业 / 互补点
+let compGroup = new THREE.Group(); scene.add(compGroup);
+function rebuildCompPoints(){
+  while(compGroup.children.length) compGroup.remove(compGroup.children[0]);
+  if (!state.spotId || !state.cat) return;     // 未选齐：不画同业点
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  if (!sp) return;
+  const N = getSameCount(sp, state.cat);
+  let placed = 0, tries = 0;
+  while (placed < N && tries < N*5){
+    const x = (Math.random()-0.5)*440, z = (Math.random()-0.5)*340;
+    if (Math.hypot(x-sp.x, z-sp.z) > 25){
+      const s = new THREE.Mesh(new THREE.SphereGeometry(2.0, 16, 12),
+        new THREE.MeshStandardMaterial({color:0xff3b30, emissive:0xff3b30, emissiveIntensity:0.5}));
+      s.position.set(x, 3, z); compGroup.add(s);
+      placed++;
+    }
+    tries++;
+  }
+  for (let i=0; i<60; i++){
+    const x = (Math.random()-0.5)*440, z = (Math.random()-0.5)*340;
+    const s = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 10),
+      new THREE.MeshStandardMaterial({color:0x5ac8fa, emissive:0x5ac8fa, emissiveIntensity:0.3}));
+    s.position.set(x, 3, z); compGroup.add(s);
+  }
+}
+
+// （客群分层柱已移除：信息全部在右栏「客群分层条形」面板里）
+
+// 粒子
+let particles, axes, speeds;
+function rebuildParticles(count){
+  if (particles) scene.remove(particles);
+  axes = new Uint8Array(count); speeds = new Float32Array(count);
+  const positions = new Float32Array(count*3);
+  for (let i=0;i<count;i++){
+    const a = Math.random()>0.5 ? 0 : 1; axes[i]=a;
+    if (a===0){ positions[i*3]=(Math.random()-0.5)*1000; positions[i*3+1]=1.2;
+                positions[i*3+2]=(Math.random()<0.5?-1:1)*(4+Math.random()*8); }
+    else      { positions[i*3]=(Math.random()<0.5?-1:1)*(4+Math.random()*8); positions[i*3+1]=1.2;
+                positions[i*3+2]=(Math.random()-0.5)*1000; }
+    speeds[i] = 0.4 + Math.random()*0.9;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particles = new THREE.Points(g, new THREE.PointsMaterial({color:0x4a90e2, size:2.4, transparent:true, opacity:0.78}));
+  scene.add(particles);
+}
+
+// ============ 白色小人 · Monument Valley · Ida 风 ============
+// 圆锥披风 + 小球头 + 尖顶帽，无四肢
+const character = new THREE.Group();
+const charMatWhite = new THREE.MeshPhysicalMaterial({
+  color: 0xfafaf8, roughness: 0.32, metalness: 0.06,
+  clearcoat: 0.65, clearcoatRoughness: 0.28,
+});
+// 披风（宽底窄顶的圆锥，顶部 1.2 / 底部 2.8 / 高 6.5）
+const cloakGeo = new THREE.CylinderGeometry(1.2, 2.8, 6.5, 32, 1, false);
+const cloak = new THREE.Mesh(cloakGeo, charMatWhite);
+cloak.position.y = 3.25;
+cloak.castShadow = true;
+character.add(cloak);
+// 头（小球，半径 1.45）
+const head = new THREE.Mesh(new THREE.SphereGeometry(1.45, 24, 18), charMatWhite);
+head.position.y = 6.5 + 1.0;       // 披风顶 + 一点 neck
+head.castShadow = true;
+character.add(head);
+// 尖顶帽（圆锥，高 3）
+const hatGeo = new THREE.ConeGeometry(1.4, 3.2, 24);
+const hat = new THREE.Mesh(hatGeo, charMatWhite);
+hat.position.y = 6.5 + 1.0 + 1.45 + 1.2;   // 顶在头上
+hat.castShadow = true;
+character.add(hat);
+// 帽尖小金球（朝向参考点，纪念碑谷风的"高光"）
+const hatTip = new THREE.Mesh(
+  new THREE.SphereGeometry(0.35, 12, 8),
+  new THREE.MeshStandardMaterial({color:0xd4af37, emissive:0xd4af37, emissiveIntensity:0.4, metalness:0.7, roughness:0.3})
+);
+hatTip.position.y = hat.position.y + 1.85;
+character.add(hatTip);
+// 面朝指示（披风正前方一个小金点，告诉用户朝哪边）
+const faceDot = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6),
+  new THREE.MeshBasicMaterial({color:0xd4af37}));
+faceDot.position.set(0, 6.5, 1.4);
+character.add(faceDot);
+// 脚下浅投影圆（更柔和）
+const charShadow = new THREE.Mesh(new THREE.CircleGeometry(2.8, 32),
+  new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.22}));
+charShadow.rotation.x = -Math.PI/2;
+charShadow.position.y = 0.06;
+character.add(charShadow);
+
+// 兼容旧 walking 动画引用（防止报错）
+const body = cloak;
+const armL = { rotation: { x: 0 } };
+const armR = { rotation: { x: 0 } };
+const legL = { rotation: { x: 0 } };
+const legR = { rotation: { x: 0 } };
+
+// 整体放大 → 远看更醒目（原始尺寸偏小）
+character.scale.set(1.75, 1.75, 1.75);
+// 小人初始位置（金融城地铁站旁）
+character.position.set(0, 0, 95);
+scene.add(character);
+
+// ============ 寻路与行走 ============
+const nav = {
+  walking: false,
+  target: null,           // Vector3（当前 waypoint）
+  path: [],               // 剩余 waypoints
+  building: null,
+  speed: 95,
+  legPhase: 0,
+};
+
+// === 寻路工具：线段-矩形相交 / 角点 / 障碍检测 ===
+const NAV_PADDING = 5;    // 角色半径 + 安全余量（角色 cloak 半径约 4.9m）
+const WAYPOINT_OFFSET = NAV_PADDING + 2;  // 路径节点放在 padded 外 2m
+
+// 严格"在 padded 内"（不含边界）— 边界点不算"内"，避免 waypoint 误判
+function pointInPaddedRect(p, b, pad){
+  return p.x > b.x - b.w/2 - pad && p.x < b.x + b.w/2 + pad &&
+         p.z > b.z - b.d/2 - pad && p.z < b.z + b.d/2 + pad;
+}
+function segIntersectsRect(p1, p2, rect, pad){
+  if (pointInPaddedRect(p1, rect, pad)) return true;
+  if (pointInPaddedRect(p2, rect, pad)) return true;
+  const minX = rect.x - rect.w/2 - pad, maxX = rect.x + rect.w/2 + pad;
+  const minZ = rect.z - rect.d/2 - pad, maxZ = rect.z + rect.d/2 + pad;
+  const edges = [
+    [{x:minX,z:minZ},{x:maxX,z:minZ}],
+    [{x:maxX,z:minZ},{x:maxX,z:maxZ}],
+    [{x:maxX,z:maxZ},{x:minX,z:maxZ}],
+    [{x:minX,z:maxZ},{x:minX,z:minZ}],
+  ];
+  for (const [a,b] of edges){ if (segSeg(p1, p2, a, b)) return true; }
+  return false;
+}
+function segSeg(p1, p2, p3, p4){
+  const d = (p2.x-p1.x)*(p4.z-p3.z) - (p2.z-p1.z)*(p4.x-p3.x);
+  if (Math.abs(d) < 1e-10) return false;
+  const t = ((p3.x-p1.x)*(p4.z-p3.z) - (p3.z-p1.z)*(p4.x-p3.x)) / d;
+  const s = ((p3.x-p1.x)*(p2.z-p1.z) - (p3.z-p1.z)*(p2.x-p1.x)) / d;
+  return t >= 0 && t <= 1 && s >= 0 && s <= 1;
+}
+// 找包含某点的 LANDMARK（用于反推"宿主建筑"，便于排除）
+function findHostLandmarkAt(point){
+  for (const b of LANDMARKS){
+    if (b.candidate || !b.w || !b.d) continue;
+    if (pointInPaddedRect(point, b, NAV_PADDING + 4)) return b;
+  }
+  return null;
+}
+// 把 dest 推到所有非排除建筑的"外面"
+function clampDestOutside(dest, excludeIds){
+  for (let iter = 0; iter < 8; iter++){
+    let stuck = null;
+    for (const b of LANDMARKS){
+      if (excludeIds.includes(b.id) || b.candidate || !b.w || !b.d) continue;
+      if (pointInPaddedRect(dest, b, NAV_PADDING)){ stuck = b; break; }
+    }
+    if (!stuck) return dest;
+    const dx = dest.x - stuck.x, dz = dest.z - stuck.z;
+    const hw = stuck.w/2 + NAV_PADDING + 1.5;
+    const hd = stuck.d/2 + NAV_PADDING + 1.5;
+    const overlapX = hw - Math.abs(dx);
+    const overlapZ = hd - Math.abs(dz);
+    if (overlapX < overlapZ){
+      dest.x = stuck.x + (dx >= 0 ? hw : -hw);
+    } else {
+      dest.z = stuck.z + (dz >= 0 ? hd : -hd);
+    }
+  }
+  return dest;
+}
+function findBlockers(p1, p2, excludeIds){
+  return LANDMARKS.filter(b => {
+    if (excludeIds.includes(b.id)) return false;
+    if (b.candidate || !b.w || !b.d) return false;
+    return segIntersectsRect(p1, p2, b, NAV_PADDING);
+  });
+}
+function buildingCorners(b, pad){
+  const hw = b.w/2 + pad, hd = b.d/2 + pad;
+  return [
+    { x: b.x - hw, z: b.z - hd },
+    { x: b.x + hw, z: b.z - hd },
+    { x: b.x + hw, z: b.z + hd },
+    { x: b.x - hw, z: b.z + hd },
+  ];
+}
+// 4 个角 + 4 个边中点 = 8 个候选 waypoint per 建筑
+function buildingWaypoints(b, pad){
+  const hw = b.w/2 + pad, hd = b.d/2 + pad;
+  return [
+    { x: b.x - hw, z: b.z - hd },  // SW 角
+    { x: b.x + hw, z: b.z - hd },  // SE 角
+    { x: b.x + hw, z: b.z + hd },  // NE 角
+    { x: b.x - hw, z: b.z + hd },  // NW 角
+    { x: b.x,      z: b.z - hd },  // S 边中点
+    { x: b.x + hw, z: b.z      },  // E 边中点
+    { x: b.x,      z: b.z + hd },  // N 边中点
+    { x: b.x - hw, z: b.z      },  // W 边中点
+  ];
+}
+// 沙盘四周大边界点（兜底绕远路）
+const GRAND_BOUND = 260;
+const GRAND_POINTS = [
+  { x:  GRAND_BOUND, z:  GRAND_BOUND },
+  { x:  0,            z:  GRAND_BOUND },
+  { x: -GRAND_BOUND, z:  GRAND_BOUND },
+  { x: -GRAND_BOUND, z:  0            },
+  { x: -GRAND_BOUND, z: -GRAND_BOUND },
+  { x:  0,            z: -GRAND_BOUND },
+  { x:  GRAND_BOUND, z: -GRAND_BOUND },
+  { x:  GRAND_BOUND, z:  0            },
+];
+function distXZ(a, b){ return Math.hypot(a.x-b.x, a.z-b.z); }
+
+// 规划：起点 → 终点，绕开建筑（视觉图 + Dijkstra）
+function planPath(from, to, excludeIds){
+  // 1) 直走无阻挡
+  if (findBlockers(from, to, excludeIds).length === 0) return [to];
+
+  // 2) 收集候选 waypoint：每栋非排除建筑 8 个（4 角 + 4 边中点）+ 8 个全局边界点
+  const nodes = [from, to];
+  const tryAdd = (p) => {
+    // 不能在任何非排除建筑的 padded 内
+    for (const b of LANDMARKS){
+      if (excludeIds.includes(b.id) || b.candidate || !b.w || !b.d) continue;
+      if (pointInPaddedRect(p, b, NAV_PADDING)) return;
+    }
+    nodes.push(p);
+  };
+  for (const b of LANDMARKS){
+    if (excludeIds.includes(b.id) || b.candidate || !b.w || !b.d) continue;
+    for (const wp of buildingWaypoints(b, WAYPOINT_OFFSET)){
+      tryAdd(wp);
+    }
+  }
+  for (const gp of GRAND_POINTS) tryAdd(gp);
+
+  // 3) 建边：两点之间视线可达？（纯几何，无 owner 例外）
+  const N = nodes.length;
+  const adj = Array.from({length:N}, () => []);
+  for (let i=0; i<N; i++){
+    for (let j=i+1; j<N; j++){
+      if (findBlockers(nodes[i], nodes[j], excludeIds).length === 0){
+        const w = distXZ(nodes[i], nodes[j]);
+        adj[i].push({ to:j, w });
+        adj[j].push({ to:i, w });
+      }
+    }
+  }
+
+  // 4) Dijkstra: from(0) → to(1)
+  const dArr = new Array(N).fill(Infinity);
+  const prev = new Array(N).fill(-1);
+  const visited = new Array(N).fill(false);
+  dArr[0] = 0;
+  while (true){
+    let u = -1, ub = Infinity;
+    for (let i=0; i<N; i++){
+      if (!visited[i] && dArr[i] < ub){ ub = dArr[i]; u = i; }
+    }
+    if (u === -1 || u === 1) break;
+    visited[u] = true;
+    for (const e of adj[u]){
+      const nd = dArr[u] + e.w;
+      if (nd < dArr[e.to]){ dArr[e.to] = nd; prev[e.to] = u; }
+    }
+  }
+
+  // 5) 回溯路径
+  if (dArr[1] === Infinity) return [to];   // 无解兜底
+  const path = [];
+  let cur = 1;
+  while (cur !== 0 && cur !== -1){
+    path.unshift(nodes[cur]);
+    cur = prev[cur];
+  }
+  return path;
+}
+
+// 画路径调试线
+let pathLine = null;
+function drawPathLine(from, path){
+  if (pathLine) scene.remove(pathLine);
+  const pts = [
+    new THREE.Vector3(from.x, 1.2, from.z),
+    ...path.map(p => new THREE.Vector3(p.x, 1.2, p.z)),
+  ];
+  const geom = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineDashedMaterial({
+    color: 0xd4af37, transparent: true, opacity: 0.65,
+    dashSize: 4, gapSize: 3,
+  });
+  pathLine = new THREE.Line(geom, mat);
+  pathLine.computeLineDistances();
+  scene.add(pathLine);
+}
+function clearPathLine(){
+  if (pathLine){ scene.remove(pathLine); pathLine = null; }
+}
+
+// ============ 摄像机：俯视切换（缓动版） ============
+const camState = {
+  mode: 'idle',        // 'idle' | 'toOverhead' | 'overhead' | 'toRestore'
+  savedOffset: null,   // 走路前 camera 相对 target 的偏移（用于恢复）
+  fromOffset: null,
+  toOffset: null,
+  tweenT0: 0,
+  tweenDur: 1200,      // 默认时长（toOverhead 用）
+};
+const OVERHEAD_HEIGHT = 320;
+const OVERHEAD_TILT_Z = 50;
+const TWEEN_DUR_UP   = 1200;   // 进入俯视 (起步时观众准备好)
+const TWEEN_DUR_DOWN = 1500;   // 恢复原视角 (落幕更从容)
+
+// easeInOutQuint — 极柔和的进出曲线（远比 quad 慢）
+function easeInOutQuint(t){
+  return t < 0.5
+    ? 16 * t*t*t*t*t
+    : 1 - Math.pow(-2*t + 2, 5) / 2;
+}
+
+function camStartOverhead(){
+  if (camState.mode === 'toOverhead' || camState.mode === 'overhead') return;
+  // 只在真正 idle（用户手动 orbit 中）才采样保存；toRestore 中途打断不覆盖
+  if (camState.mode === 'idle' || !camState.savedOffset){
+    camState.savedOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  }
+  camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  camState.toOffset = new THREE.Vector3(0, OVERHEAD_HEIGHT, OVERHEAD_TILT_Z);
+  camState.mode = 'toOverhead';
+  camState.tweenDur = TWEEN_DUR_UP;
+  camState.tweenT0 = performance.now();
+}
+function camStartRestore(){
+  if (!camState.savedOffset) return;
+  camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  camState.toOffset = camState.savedOffset.clone();
+  camState.mode = 'toRestore';
+  camState.tweenDur = TWEEN_DUR_DOWN;
+  camState.tweenT0 = performance.now();
+}
+// 用户主动："回到默认视角"
+function camResetToDefault(){
+  camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  camState.toOffset = DEFAULT_CAM_POS.clone().sub(DEFAULT_CAM_TARGET);
+  camState.savedOffset = camState.toOffset.clone();     // 顺便更新 saved
+  camState.mode = 'toRestore';
+  camState.tweenDur = 900;
+  camState.tweenT0 = performance.now();
+  // 同时 target 也缓动回原
+  const tgtFrom = controls.target.clone();
+  const tgtTo = DEFAULT_CAM_TARGET.clone();
+  const t0 = performance.now();
+  function tweenTgt(){
+    const t = Math.min(1, (performance.now()-t0)/900);
+    const e = t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+    controls.target.copy(tgtFrom).lerp(tgtTo, e);
+    if (t<1) requestAnimationFrame(tweenTgt);
+  }
+  tweenTgt();
+}
+
+// 取消寻路（保留当前位置 + 视角恢复）
+function cancelWalk(){
+  if (!nav.walking) return;
+  nav.walking = false;
+  nav.path = [];
+  nav.target = null;
+  renderer.domElement.classList.remove('walking');
+  document.getElementById('walkingBar').classList.remove('show');
+  character.rotation.x = 0;
+  character.position.y = 0;
+  clearPathLine();
+  camStartRestore();
+}
+function updateCameraTween(){
+  if (camState.mode !== 'toOverhead' && camState.mode !== 'toRestore') return;
+  const t = Math.min(1, (performance.now() - camState.tweenT0) / camState.tweenDur);
+  const e = easeInOutQuint(t);
+  const off = camState.fromOffset.clone().lerp(camState.toOffset, e);
+  camera.position.copy(controls.target).add(off);
+  if (t >= 1){
+    camState.mode = (camState.mode === 'toOverhead') ? 'overhead' : 'idle';
+  }
+}
+
+function startWalkTo(building){
+  const from = { x: character.position.x, z: character.position.z };
+  // 计算"建筑外门口点"
+  const dx = from.x - building.x, dz = from.z - building.z;
+  const d0 = Math.hypot(dx, dz) || 1;
+  const off = (building.w ? building.w/2 : 12) + 20;
+  let dest = {
+    x: building.x + dx/d0 * off,
+    z: building.z + dz/d0 * off,
+  };
+
+  // 收集排除列表：目标建筑 + 候选铺位的宿主建筑 + 角色当前所在的宿主建筑
+  const excludeIds = [];
+  // 目标建筑本身（如果是 LANDMARK）
+  if (building.id && LANDMARKS.find(l => l.id === building.id)){
+    excludeIds.push(building.id);
+  }
+  // 目标是候选铺位 / 地铁 — 反查它"贴身"的 LANDMARK
+  if (!LANDMARKS.find(l => l.id === building.id)){
+    const host = findHostLandmarkAt({ x: building.x, z: building.z });
+    if (host) excludeIds.push(host.id);
+  }
+  // 角色当前位置的宿主（防止刚离开的楼算成阻挡）
+  const fromHost = findHostLandmarkAt(from);
+  if (fromHost && !excludeIds.includes(fromHost.id)) excludeIds.push(fromHost.id);
+
+  // 把 dest 推到非排除建筑外面
+  dest = clampDestOutside(dest, excludeIds);
+
+  // 寻路
+  const path = planPath(from, dest, excludeIds);
+  nav.path = path;
+  nav.target = new THREE.Vector3(path[0].x, 0, path[0].z);
+  nav.building = building;
+  nav.walking = true;
+  drawPathLine(from, path);
+  document.getElementById('walkingBar').classList.add('show');
+  document.getElementById('walkingText').textContent = `小人正在前往「${building.name}」...`;
+  renderer.domElement.classList.add('walking');
+  if (!firstClicked){
+    firstClicked = true;
+    document.getElementById('introTip').classList.add('hide');
+  }
+  camStartOverhead();   // 切到俯视
+}
+
+function updateCharacter(dt){
+  // 朝向插值 — 总是朝目标或最后朝向
+  if (nav.walking && nav.target){
+    const cur = character.position;
+    const tgt = nav.target;
+    const dx = tgt.x - cur.x, dz = tgt.z - cur.z;
+    const dist = Math.hypot(dx, dz);
+
+    // 记录这一帧角色移动了多少 → 让相机做相同的位移（保持你当前的方位角和距离不变）
+    let movedX = 0, movedZ = 0;
+
+    if (dist < 2.5){
+      // 到达当前 waypoint，看是否还有下一段
+      nav.path.shift();
+      if (nav.path.length > 0){
+        // 切换到下一个 waypoint，继续走
+        nav.target = new THREE.Vector3(nav.path[0].x, 0, nav.path[0].z);
+        return;   // 这一帧不再向前推进，下一帧重新计算
+      }
+      // 全部走完
+      nav.walking = false;
+      renderer.domElement.classList.remove('walking');
+      document.getElementById('walkingBar').classList.remove('show');
+      character.rotation.x = 0;
+      character.position.y = 0;
+      clearPathLine();
+      camStartRestore();        // 视角回原
+      onArrive(nav.building);
+    } else {
+      const step = Math.min(dist, nav.speed * dt);
+      const sx = dx/dist * step;
+      const sz = dz/dist * step;
+      cur.x += sx; cur.z += sz;
+      movedX = sx; movedZ = sz;
+      // 朝向插值
+      const targetYaw = Math.atan2(dx, dz);
+      let diff = targetYaw - character.rotation.y;
+      while (diff > Math.PI) diff -= 2*Math.PI;
+      while (diff < -Math.PI) diff += 2*Math.PI;
+      character.rotation.y += diff * Math.min(1, dt*8);
+      // Ida 风格走路：上下浮动 + 前倾（按 scale 放大后浮动也加大）
+      nav.legPhase += dt * 6;
+      character.position.y = Math.abs(Math.sin(nav.legPhase)) * 0.85;
+      character.rotation.x = -0.08;
+    }
+
+    // ===== 摄像机跟随：target 始终随小人，camera 视模式而定 =====
+    const desiredTX = character.position.x;
+    const desiredTZ = character.position.z;
+    const followK = Math.min(1, dt * 2.4);
+    const dtx = (desiredTX - controls.target.x) * followK;
+    const dty = (14 - controls.target.y) * followK;
+    const dtz = (desiredTZ - controls.target.z) * followK;
+    controls.target.x += dtx;
+    controls.target.y += dty;
+    controls.target.z += dtz;
+
+    if (camState.mode === 'overhead'){
+      // 锁定在小人正上方 + 一点倾斜
+      camera.position.copy(controls.target).add(camState.toOffset);
+    } else if (camState.mode === 'idle'){
+      // 还没切到俯视/已恢复：camera 跟着 target 平移
+      camera.position.x += dtx;
+      camera.position.y += dty;
+      camera.position.z += dtz;
+    }
+    // toOverhead / toRestore 期间 camera 由 updateCameraTween 控制
+  }
+}
+
+// ============ 建筑详情浮层 ============
+const popupEl = document.getElementById('bPopup');
+let popupTarget = null;     // 当前 popup 指向的建筑（用于跟随屏幕坐标）
+
+function showBuildingPopup(b){
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  let type, narr;
+  // 计算到候选铺位的距离
+  const distToSpot = Math.hypot(b.x - sp.x, b.z - sp.z);
+
+  if (b.candidate || b._isSpot){
+    type = '候选铺位';
+    document.getElementById('bType').className = 'b-type shop';
+    narr = `当前候选铺位。点击"切换为此铺位"会成为评估目标，右侧仪表盘全部联动重算。`;
+  } else if (b._isMetro){
+    type = '地铁站';
+    document.getElementById('bType').className = 'b-type metro';
+    narr = `${b.name}地铁口。距当前候选铺位 <b>${Math.round(distToSpot)}m</b>。地铁衰减半径 200m，越近 G 维度地理评分越高。`;
+  } else if (b.res){
+    type = '住宅';
+    document.getElementById('bType').className = 'b-type res';
+    const ifEatable = b.name.length;  // 简单噪声
+    narr = `住宅楼，是 <b>周边居民</b> 客群的源头。${cat.label}的居民客占比 <b>${(cat.segments[1].share*100).toFixed(0)}%</b>，是核心客群之一。`;
+  } else if (b.anchor && b.mall){
+    type = '锚店商场';
+    document.getElementById('bType').className = 'b-type';
+    narr = `<b>${b.name}</b> 是商圈核心锚店。锚店权重越高，K 竞争修正系数越好。当前候选铺位的锚店权重 <b>${sp.anchorWeight.toFixed(2)}</b>。`;
+  } else if (b.anchor){
+    type = '甲级写字楼';
+    document.getElementById('bType').className = 'b-type';
+    narr = `${b.h}m 高的甲级写字楼，是 <b>金融白领</b> 客群的核心来源（占 ${cat.label} 客群 <b>${(cat.segments[0].share*100).toFixed(0)}%</b>）。距候选铺位 <b>${Math.round(distToSpot)}m</b>。`;
+  } else {
+    type = '商办';
+    document.getElementById('bType').className = 'b-type';
+    narr = `${b.h}m 高的写字楼。距候选铺位 ${Math.round(distToSpot)}m，提供潜在客流。`;
+  }
+
+  document.getElementById('bName').textContent = b.name;
+  document.getElementById('bType').textContent = type;
+  document.getElementById('bNarr').innerHTML = narr;
+  // 元信息
+  const meta = [];
+  if (b.h) meta.push({ k:'高度', v: b.h + ' m' });
+  if (b._isSpot || b.candidate){
+    meta.push({ k:'面积', v: b.area + ' ㎡' });
+    meta.push({ k:'楼层', v: b.floor });
+    meta.push({ k:'月租金', v: b.rent + '元/㎡' });
+  } else {
+    meta.push({ k:'距候选铺位', v: Math.round(distToSpot) + ' m' });
+    if (b.anchor) meta.push({ k:'锚店', v: '是' });
+    if (b.res) meta.push({ k:'类型', v: '住宅' });
+    if (b._isMetro) meta.push({ k:'线路', v: (b.lines||[]).join('、') || '—' });
+  }
+  document.getElementById('bMeta').innerHTML = meta.map(m =>
+    `<div class="it"><div class="k">${m.k}</div><div class="v">${m.v}</div></div>`
+  ).join('');
+
+  // 操作按钮
+  const action = document.getElementById('bAction');
+  const canEnter = b.id && isEnterable(b.id);
+  const buttons = [];
+  if (b._isSpot){
+    // 候选铺位：进入对应建筑 + 切换评估
+    if (!b.candidate){
+      buttons.push(`<button class="btn-mini" data-act="setSpot" data-id="${b.id}">切换为评估目标</button>`);
+    }
+    // 找到承载铺位的建筑（按地址匹配关键词）
+    const host = findHostBuilding(b);
+    if (host){
+      buttons.push(`<button class="btn-mini ${b.candidate?'':'ghost'}" data-act="enter" data-bid="${host}" data-spotid="${b.id||b.spotId||''}">🔍 进入建筑探索内铺</button>`);
+    }
+  } else if (canEnter){
+    buttons.push(`<button class="btn-mini" data-act="enter" data-bid="${b.id}">🔍 进入建筑探索内铺</button>`);
+    buttons.push(`<button class="btn-mini ghost" data-act="close">关闭</button>`);
+  } else {
+    buttons.push(`<button class="btn-mini ghost" data-act="close">关闭</button>`);
+  }
+  action.innerHTML = buttons.join('');
+  action.querySelectorAll('.btn-mini[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const a = btn.dataset.act;
+      if (a === 'setSpot'){
+        state.spotId = btn.dataset.id;
+        document.getElementById('spotSelect').value = state.spotId;
+        rebuildSpotMarker();
+        refreshAll();
+        hidePopup();
+      } else if (a === 'enter'){
+        openLevel2(btn.dataset.bid, btn.dataset.spotid);
+        hidePopup();
+      } else {
+        hidePopup();
+      }
+    });
+  });
+
+  popupTarget = b;
+  popupEl.classList.add('show');
+  syncPopupPos();
+}
+function hidePopup(){
+  popupEl.classList.remove('show');
+  popupTarget = null;
+}
+function syncPopupPos(){
+  if (!popupTarget) return;
+  const v = new THREE.Vector3(popupTarget.x, popupTarget.h ? popupTarget.h : 12, popupTarget.z);
+  v.project(camera);
+  const rect = renderer.domElement.getBoundingClientRect();
+  const sx = (v.x*0.5 + 0.5) * rect.width + rect.left;
+  const sy = (-v.y*0.5 + 0.5) * rect.height + rect.top;
+  popupEl.style.left = sx + 'px';
+  popupEl.style.top = sy + 'px';
+}
+document.getElementById('bClose').addEventListener('click', hidePopup);
+
+function onArrive(target){
+  showBuildingPopup(target);
+}
+
+// ============ 拾取列表（建筑 + 候选铺位 marker + 地铁圆盘） ============
+function pickables(){
+  const arr = [...meshMap.values()];   // 仅建筑
+  if (spotMarker) arr.push(spotMarker);
+  // 加地铁站圆盘（每个 metroGroup 的第一个 child 是 disc，已挂 userData）
+  metroGroups.forEach(g => arr.push(g.children[0]));
+  return arr;
+}
+
+// ============ hover 高亮（只动建筑） ============
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+window.addEventListener('mousemove', e => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  if (e.clientX < rect.left || e.clientX > rect.right) return;
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(pickables());
+  // 只重置 meshMap 里的建筑 emissive（地铁站不动）
+  [...meshMap.values()].forEach(m => {
+    if (m.material && m.material.emissive){
+      m.material.emissive = new THREE.Color(0); m.material.emissiveIntensity = 0;
+    }
+  });
+  if (hits.length && hits[0].object.userData){
+    const obj = hits[0].object;
+    // 不去碰地铁站/候选铺位（它们有自己的 emissive 设置）
+    if (!obj.userData._isMetro && !obj.userData._isSpot
+        && obj.material && obj.material.emissive){
+      obj.material.emissive = new THREE.Color(0xa9c2ff);
+      obj.material.emissiveIntensity = 0.22;
+    }
+  }
+});
+
+// ============ click 触发寻路 ============
+let firstClicked = false;
+renderer.domElement.addEventListener('click', e => {
+  if (nav.walking) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(pickables());
+  if (!hits.length){ hidePopup(); return; }
+  const obj = hits[0].object;
+  const data = obj.userData;
+  if (!data) return;
+  // 隐藏旧 popup
+  hidePopup();
+  // 给可识别 flag（spot marker / metro / landmark）
+  let target;
+  if (data.candidate){
+    // 当前候选铺位
+    const sp = SPOTS.find(s => s.id === state.spotId);
+    target = { ...sp, _isSpot:true, candidate:true, h: 12 };
+  } else if (data.id && data.w !== undefined){
+    target = { ...data };
+  } else {
+    target = data;
+  }
+  startWalkTo(target);
+});
+
+// ESC 关闭 popup
+window.addEventListener('keydown', e => { if (e.key === 'Escape') hidePopup(); });
+
+// ============ 给地铁圆盘挂 userData（用于点击拾取） ============
+metroGroups.forEach((g, i) => {
+  const m = METRO[i];
+  g.children[0].userData = { ...m, _isMetro:true, name: m.name+' 地铁口', h:8 };
+});
+
+// ============ 渲染函数 ============
+function drawRadar(values){
+  const cv = document.getElementById('radarCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cx = cv.width/2, cy = cv.height/2 + 6, R = 122;
+  const labels = ['地理 G','经济 E','消费者 C','竞争 K','外部 X'];
+  const N = labels.length;
+  for (let g=1; g<=5; g++){
+    ctx.beginPath();
+    for (let i=0;i<N;i++){
+      const a = -Math.PI/2 + i*2*Math.PI/N;
+      const r = R*g/5;
+      const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(120,130,145,'+(0.10+g*0.03)+')';
+    ctx.lineWidth = 1; ctx.stroke();
+  }
+  for (let i=0;i<N;i++){
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R);
+    ctx.strokeStyle = 'rgba(120,130,145,0.18)'; ctx.stroke();
+  }
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  const grad = ctx.createRadialGradient(cx,cy,0, cx,cy,R);
+  grad.addColorStop(0, 'rgba(74,144,226,0.55)');
+  grad.addColorStop(1, 'rgba(74,144,226,0.18)');
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.4; ctx.stroke();
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    ctx.beginPath(); ctx.arc(x,y,3.8,0,2*Math.PI);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#4a90e2'; ctx.lineWidth=2; ctx.stroke();
+  });
+  ctx.font = '600 22px -apple-system, "PingFang SC"';
+  ctx.fillStyle = '#1d1d1f'; ctx.textAlign='center';
+  labels.forEach((lab,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const x = cx + Math.cos(a)*(R+28);
+    const y = cy + Math.sin(a)*(R+28) + 6;
+    ctx.fillText(lab, x, y);
+    ctx.font = '500 18px -apple-system'; ctx.fillStyle='#86868b';
+    ctx.fillText(values[i].toFixed(1), x, y+20);
+    ctx.font = '600 22px -apple-system, "PingFang SC"'; ctx.fillStyle='#1d1d1f';
+  });
+}
+
+function drawUCurve(){
+  const cv = document.getElementById('ucCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const W = cv.width, H = cv.height, pad = 22;
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  const cur = getSameCount(sp, state.cat);
+  const xs = [], ys = [];
+  for (let n=1; n<=80; n++){
+    const agg = Math.log(1+n) * 0.15;
+    const loss = Math.pow(n/cat.N_carry, 2) * 0.8;
+    const K = 1 + agg - loss + sp.anchorWeight*0.2;
+    xs.push(n); ys.push(K);
+  }
+  const yMax = 1.6, yMin = 0;
+  // 网格
+  ctx.strokeStyle = 'rgba(120,130,145,0.16)'; ctx.lineWidth = 1;
+  for (let i=0;i<=4;i++){
+    const y = pad + (H-2*pad)*i/4;
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke();
+  }
+  // 区域填充（K>=1 是绿色赚区 / K<1 是红色亏损区）
+  for (let i=0; i<xs.length-1; i++){
+    const x1 = pad + (W-2*pad)*i/79;
+    const x2 = pad + (W-2*pad)*(i+1)/79;
+    const y1 = H - pad - (H-2*pad)*(ys[i]-yMin)/(yMax-yMin);
+    const baseY = H - pad - (H-2*pad)*(1-yMin)/(yMax-yMin);
+    ctx.fillStyle = ys[i] >= 1 ? 'rgba(52,199,89,0.10)' : 'rgba(255,59,48,0.06)';
+    ctx.fillRect(x1, Math.min(y1, baseY), x2-x1, Math.abs(y1-baseY));
+  }
+  // 曲线
+  ctx.beginPath();
+  xs.forEach((n,i)=>{
+    const x = pad + (W-2*pad)*(n-1)/79;
+    const y = H - pad - (H-2*pad)*(ys[i]-yMin)/(yMax-yMin);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.4; ctx.stroke();
+  // 当前
+  const cIdx = Math.min(cur-1, 79);
+  const cx2 = pad + (W-2*pad)*(xs[cIdx]-1)/79;
+  const cy2 = H - pad - (H-2*pad)*(ys[cIdx]-yMin)/(yMax-yMin);
+  ctx.fillStyle = '#ff3b30';
+  ctx.beginPath(); ctx.arc(cx2, cy2, 5, 0, 2*Math.PI); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  // 最优
+  let bestI = 0, bestY = -Infinity;
+  ys.forEach((v,i)=>{ if(v>bestY){bestY=v; bestI=i;} });
+  const bx = pad + (W-2*pad)*(xs[bestI]-1)/79;
+  const by = H - pad - (H-2*pad)*(bestY-yMin)/(yMax-yMin);
+  ctx.fillStyle = '#34c759';
+  ctx.beginPath(); ctx.arc(bx, by, 4, 0, 2*Math.PI); ctx.fill();
+  // 标注
+  ctx.font = '500 18px -apple-system'; ctx.fillStyle='#86868b'; ctx.textAlign='left';
+  ctx.fillText('当前 '+cur+' 家 · K='+ys[cIdx].toFixed(2), pad, 14);
+  ctx.fillStyle = '#34c759'; ctx.textAlign='right';
+  ctx.fillText('最优 '+xs[bestI]+' 家', W-pad, 14);
+
+  document.getElementById('ucTag').textContent = `${CATEGORIES[state.cat].label} ${cur}/${cat.N_carry}家`;
+  return { cur, best:xs[bestI], curK:ys[cIdx] };
+}
+
+function drawCFMini(cf, invest){
+  const cv = document.getElementById('cfMini');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const W=cv.width, H=cv.height, pad=28;
+  const cums = cf.flows.map(f => f.cum);
+  const minY = Math.min(...cums), maxY = Math.max(...cums);
+  const x = i => pad + (W-2*pad)*i/5;
+  const y = v => H - pad - (H-2*pad)*(v-minY)/(maxY-minY+0.001);
+  // 0 线
+  ctx.strokeStyle = 'rgba(120,130,145,0.4)'; ctx.lineWidth = 1.2; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(pad, y(0)); ctx.lineTo(W-pad, y(0)); ctx.stroke();
+  ctx.setLineDash([]);
+  // 阴影区域
+  ctx.beginPath();
+  cf.flows.forEach((f, i) => {
+    if (i===0) ctx.moveTo(x(i), y(0));
+    else ctx.lineTo(x(i), y(f.cum));
+  });
+  ctx.lineTo(x(5), y(0));
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  if (cf.flows[5].cum > 0){
+    grad.addColorStop(0, 'rgba(52,199,89,0.30)');
+    grad.addColorStop(1, 'rgba(52,199,89,0.02)');
+  } else {
+    grad.addColorStop(0, 'rgba(255,59,48,0.30)');
+    grad.addColorStop(1, 'rgba(255,59,48,0.02)');
+  }
+  ctx.fillStyle = grad; ctx.fill();
+  // 曲线
+  ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.6; ctx.beginPath();
+  cf.flows.forEach((f, i) => {
+    if (i===0) ctx.moveTo(x(i), y(f.cum));
+    else ctx.lineTo(x(i), y(f.cum));
+  });
+  ctx.stroke();
+  // 点
+  cf.flows.forEach((f, i) => {
+    ctx.fillStyle='white'; ctx.beginPath();
+    ctx.arc(x(i), y(f.cum), 4.5, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle='#4a90e2'; ctx.lineWidth=2; ctx.stroke();
+  });
+  // x 标签
+  ctx.font='500 20px -apple-system'; ctx.fillStyle='#86868b'; ctx.textAlign='center';
+  cf.flows.forEach((f, i) => ctx.fillText('Y'+f.year, x(i), H-8));
+}
+
+// ============ 主刷新 + 决策文案 ============
+function refreshAll(){
+  persistState();
+  const rail = document.getElementById('rail');
+  const ready = !!(state.cat && state.spotId);
+
+  // 用 class 切换显隐（rail.ready 时隐藏空态、显示卡片；否则反之）
+  rail.classList.toggle('ready', ready);
+
+  // 同步沙盘左上的标识
+  document.getElementById('badgeName').textContent = ready ? '' : '（未选）';
+  document.getElementById('badgeAddr').textContent = ready ? '' : '请在顶栏选业态 + 候选铺位';
+  document.getElementById('narrative').innerHTML = '';
+
+  if (!ready){
+    // 更新空态的 todo 勾选
+    document.getElementById('todoCat').className = state.cat ? 'done' : '';
+    document.getElementById('todoSpot').className = state.spotId ? 'done' : '';
+    return;
+  }
+
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  const seasonM = cat.season[state.month-1];
+  const periodMul = PERIODS[state.period].mul;
+
+  const ev = evaluateSpot(sp, state.cat);
+  const dailyRev = ev.dailyRev * periodMul;
+  const monthMul = 1 + seasonM;
+  const yearRevAdj = ev.yearRev * monthMul * (1 + (periodMul-1)*0.3); // 时段稍微影响年化
+  const yearProfit = yearRevAdj * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
+  const roi = yearProfit / ev.invest;
+  const payback = ev.invest / Math.max(0.1, yearProfit);
+  const rentRatio = ev.yearRent / yearRevAdj * 100;
+
+  // 沙盘左上文案
+  document.getElementById('badgeName').textContent = sp.name;
+  // 折叠态时，把面板标签同步成新铺位名
+  if (stageBadge.classList.contains('collapsed')){
+    badgeLabel.textContent = sp.name;
+  }
+  document.getElementById('badgeAddr').textContent = `${sp.address} · ${sp.area}㎡ · ${sp.floor} · 月租 ${sp.rent}元/㎡`;
+  // 决策叙事
+  document.getElementById('narrative').innerHTML = buildNarrative(sp, ev, cat, roi, payback, rentRatio);
+
+  // Hero
+  document.getElementById('heroName').textContent = sp.name;
+  document.getElementById('heroCat').textContent = `${cat.icon} ${cat.label}`;
+  document.getElementById('heroScore').textContent = ev.score.toFixed(1);
+  document.getElementById('heroRev').innerHTML = Math.round(yearRevAdj)+'<span class="u">万</span>';
+  document.getElementById('heroROI').innerHTML =
+    `${(roi*100).toFixed(0)}% <span class="${roi>0.3?'up':roi>0?'':'dn'} delta">${payback.toFixed(1)}年</span>`;
+  document.getElementById('heroRent').innerHTML = rentRatio.toFixed(1)+'<span class="u">%</span>';
+  document.getElementById('heroInvest').innerHTML = Math.round(ev.invest)+'<span class="u">万</span>';
+  // 变化高亮
+  flashOnChange('heroScore', +ev.score.toFixed(1));
+  flashOnChange('heroRev',   Math.round(yearRevAdj));
+  flashOnChange('heroROI',   Math.round(roi*100));
+  flashOnChange('heroRent',  +rentRatio.toFixed(1));
+
+  // 雷达
+  drawRadar([ev.G, ev.En, ev.Cn, ev.Kn, ev.Xn]);
+  const dims = [
+    { k:'G', n:'地理', v:ev.G }, { k:'E', n:'经济', v:ev.En },
+    { k:'C', n:'消费者', v:ev.Cn }, { k:'K', n:'竞争', v:ev.Kn },
+    { k:'X', n:'外部', v:ev.Xn },
+  ];
+  dims.sort((a,b)=>b.v-a.v);
+  document.getElementById('radarMaxDim').textContent = `强项 ${dims[0].n} ${dims[0].v.toFixed(1)}`;
+  const weakest = dims[dims.length-1];
+  document.getElementById('radarInsight').innerHTML =
+    weakest.v < 5 ?
+    `<b>⚠ ${weakest.n}维度偏弱（${weakest.v.toFixed(1)}/10）</b>，建议结合其他维度综合评估，或考虑其他铺位。` :
+    `5 维均衡（最低 ${weakest.n} ${weakest.v.toFixed(1)} / 最高 ${dims[0].n} ${dims[0].v.toFixed(1)}），<b>整体素质过硬</b>。`;
+
+  // 客群条形
+  const max = Math.max(...ev.segBreakdown.map(s => s.value), 1);
+  ev.segBreakdown.forEach((s, i) => {
+    document.getElementById('bar'+(i+1)).style.width = (s.value/max*100).toFixed(0) + '%';
+    document.getElementById('v'+(i+1)).textContent = '¥' + Math.round(s.value * periodMul);
+  });
+  // 客群洞察（按 L1 大类给建议）
+  const dom = ev.segBreakdown.reduce((a,b)=>a.value>b.value?a:b);
+  const adviceByL1 = {
+    fb:      '建议产品线、环境与时段产品组合优先匹配此客群偏好。',
+    retail:  '建议商品深度优先满足核心客群，并提高连带件率。',
+    service: '建议产品定价 / 套餐档位贴合核心客群消费力。',
+    ent:     '建议运营时段和包间组合贴合核心客群作息。',
+  };
+  document.getElementById('segInsight').innerHTML =
+    `<b>${dom.name}</b> 是核心贡献客群（占 ${(dom.value/ev.dailyRev*100).toFixed(0)}%）。
+     ${adviceByL1[cat.L1] || '—'}`;
+
+  // U 曲线 + 洞察
+  const uc = drawUCurve();
+  let ucMsg, ucCls;
+  if (uc.cur < uc.best*0.7){
+    ucMsg = `<b>蓝海机会</b>：当前同业 ${uc.cur} 家，距最优 ${uc.best} 家还有 ${uc.best-uc.cur} 家空间，集聚收益尚未饱和。`;
+    ucCls = 'good';
+  } else if (uc.cur < uc.best*1.2){
+    ucMsg = `<b>甜蜜点</b>：当前同业数接近最优（${uc.best}家），集聚效应充分释放且未超载。`;
+    ucCls = 'good';
+  } else {
+    ucMsg = `<b>⚠ 超载风险</b>：同业 ${uc.cur} 家已超过最优 ${uc.best} 家，K=${uc.curK.toFixed(2)}（小于 1 进入侵蚀区）。`;
+    ucCls = uc.curK < 1 ? 'bad' : 'warn';
+  }
+  const ucIns = document.getElementById('ucInsight');
+  ucIns.innerHTML = ucMsg; ucIns.className = 'insight ' + ucCls;
+
+  // 5Y 现金流
+  const cf = cashFlow5Y(ev);
+  drawCFMini(cf, ev.invest);
+  document.getElementById('cfIRR').textContent = (cf.irr*100).toFixed(1)+'%';
+  document.getElementById('cfNPV').textContent = Math.round(cf.npv)+'万';
+  document.getElementById('cfBE').textContent = cf.breakEven ? (cf.breakEven+'年') : '>5年';
+  const cfIns = document.getElementById('cfInsight');
+  if (cf.npv > ev.invest * 0.5){
+    cfIns.className = 'insight good';
+    cfIns.innerHTML = `<b>✓ 5 年 NPV ${Math.round(cf.npv)} 万</b>（按 8% 折现率），相当于投入的 ${(cf.npv/ev.invest*100).toFixed(0)}%，IRR ${(cf.irr*100).toFixed(1)}% 远超 8% 门槛。`;
+  } else if (cf.npv > 0){
+    cfIns.className = 'insight';
+    cfIns.innerHTML = `5 年 NPV ${Math.round(cf.npv)} 万正向，IRR ${(cf.irr*100).toFixed(1)}% 跑赢 8% 门槛。可投但回报普通。`;
+  } else {
+    cfIns.className = 'insight bad';
+    cfIns.innerHTML = `<b>⚠ NPV 为负</b>（${Math.round(cf.npv)} 万），5 年内难以收回投入折现值，需重新评估或谈租金。`;
+  }
+
+  // 健康检查（阈值按 L1 大类给）
+  const monthRevPerM2 = yearRevAdj * 10000 / 12 / sp.area;
+  const rentThreshByL1 = {
+    fb:      [18, 25],     // 餐饮
+    retail:  [12, 18],     // 零售
+    service: [15, 22],     // 服务
+    ent:     [20, 30],     // 娱乐
+  }[cat.L1] || [18, 25];
+  const revPerM2ByL1 = {
+    fb:      [700, 350],
+    retail:  [900, 450],
+    service: [500, 250],
+    ent:     [400, 200],
+  }[cat.L1] || [500, 250];
+  setHealth('h-rent', rentRatio, rentThreshByL1, rentRatio.toFixed(1)+'%', true);
+  setHealth('h-payback', payback, [2.5, 4.0], payback.toFixed(1)+'年', true);
+  setHealth('h-roi', roi*100, [30, 15], (roi*100).toFixed(0)+'%', false);
+  setHealth('h-rev', monthRevPerM2, revPerM2ByL1, Math.round(monthRevPerM2)+'元', false);
+
+}
+
+// reverse=true: 值越小越好；false: 越大越好
+function setHealth(id, value, [okThresh, warnThresh], display, reverse){
+  const el = document.getElementById(id);
+  el.querySelector('.v').textContent = display;
+  let cls = 'h-item ';
+  if (reverse){
+    if (value <= okThresh) cls += 'good';
+    else if (value <= warnThresh) cls += 'warn';
+    else cls += 'bad';
+  } else {
+    if (value >= okThresh) cls += 'good';
+    else if (value >= warnThresh) cls += 'warn';
+    else cls += 'bad';
+  }
+  el.className = cls;
+}
+
+function buildNarrative(sp, ev, cat, roi, payback, rentRatio){
+  // 一段连贯的中文叙事
+  const parts = [];
+  // 地段
+  if (ev.G >= 8) parts.push(`<b>${sp.name}</b> 地段评分 ${ev.G.toFixed(1)}/10，属于金融城顶级位置`);
+  else if (ev.G >= 6) parts.push(`<b>${sp.name}</b> 地段良好（${ev.G.toFixed(1)}/10）`);
+  else parts.push(`<b>${sp.name}</b> 地段一般（${ev.G.toFixed(1)}/10），位置略偏`);
+  // 距地铁
+  if (sp.metroDist < 100) parts.push(`距地铁 ${sp.metroDist}m，地铁导流强`);
+  else if (sp.metroDist < 300) parts.push(`距地铁 ${sp.metroDist}m`);
+  else parts.push(`距地铁 ${sp.metroDist}m，需自有目的性客流`);
+  // 业态匹配
+  if (ev.Cn >= 7) parts.push(`${cat.label} 客群匹配优秀`);
+  else if (ev.Cn >= 4) parts.push(`${cat.label} 客群匹配一般`);
+  else parts.push(`${cat.label} 客群匹配偏弱`);
+  // ROI 判断
+  if (roi > 0.3) parts.push(`预计 ROI ${(roi*100).toFixed(0)}%，<b>${payback.toFixed(1)} 年回本</b>，<b>建议投资</b>`);
+  else if (roi > 0.10) parts.push(`预计 ROI ${(roi*100).toFixed(0)}%，回本 ${payback.toFixed(1)} 年，回报普通`);
+  else if (roi > 0) parts.push(`<b>预计 ROI ${(roi*100).toFixed(0)}%（偏低）</b>，回本 ${payback.toFixed(1)} 年`);
+  else parts.push(`<b style="color:#ff3b30">预计亏损</b>，谨慎投资`);
+  return parts.join('，') + '。';
+}
+
+// ============ 二级沙盘 · 建筑内饰浏览 ============
+// 把铺位关联到建筑（按地址包含的关键词反查）
+function findHostBuilding(spotLike){
+  if (!spotLike) return null;
+  const addr = spotLike.address || '';
+  // 候选铺位 id 的"楼栋部分"
+  const keyMap = {
+    'IFC T1': 'IFC1', 'IFC T2': 'IFC2',
+    '双子塔南': 'TWIN1', '双子塔北': 'TWIN2',
+    '银泰 in99': 'IN99', '银泰中心 in99': 'IN99',
+    '华商金融中心': 'AFC',
+    '交子金融广场 T1': 'JZ', '交子金融广场 T2': 'JZ2',
+    '金融城 8 号': null,
+  };
+  for (const k in keyMap){
+    if (addr.includes(k)) return keyMap[k];
+  }
+  // 兜底：spot.name 关键词
+  const n = spotLike.name || '';
+  if (n.includes('IFC T1')) return 'IFC1';
+  if (n.includes('IFC T2')) return 'IFC2';
+  if (n.includes('双子塔南')) return 'TWIN1';
+  if (n.includes('双子塔北')) return 'TWIN2';
+  if (n.includes('in99')) return 'IN99';
+  if (n.includes('华商金融中心')) return 'AFC';
+  if (n.includes('交子金融广场 T1')) return 'JZ';
+  if (n.includes('交子金融广场 T2')) return 'JZ2';
+  return null;
+}
+
+const L2 = {
+  buildingId: null,
+  interior: null,
+  curFloorIdx: 0,
+  selectedUnit: null,
+  hoverUnit: null,
+  unitRects: [],   // canvas 像素矩形，用于命中
+  highlightSpotId: null,
+};
+
+function openLevel2(buildingId, spotId){
+  if (!INTERIORS[buildingId]) return;
+  L2.buildingId = buildingId;
+  L2.interior = INTERIORS[buildingId];
+  L2.selectedUnit = null;
+  L2.highlightSpotId = spotId || null;
+
+  // 默认楼层：如果有候选铺位则选它的楼层；否则第 1 层
+  let floorIdx = L2.interior.floors.findIndex(f => f.id === '1F');
+  if (spotId){
+    const idx2 = L2.interior.floors.findIndex(f =>
+      f.units.some(u => u.spotId === spotId));
+    if (idx2 >= 0) floorIdx = idx2;
+  }
+  if (floorIdx < 0) floorIdx = 0;
+  L2.curFloorIdx = floorIdx;
+
+  renderLevel2();
+  document.getElementById('level2').classList.add('show');
+  // 启动 3D 动画循环（自带去重）
+  animateLevel2();
+  // 如果有高亮铺位，自动选中它
+  if (spotId){
+    const u = L2.interior.floors[L2.curFloorIdx].units.find(u => u.spotId === spotId);
+    if (u){ selectUnit(u); }
+  }
+}
+
+function closeLevel2(){
+  document.getElementById('level2').classList.remove('show');
+}
+
+document.getElementById('l2Back').addEventListener('click', closeLevel2);
+document.getElementById('l2Close').addEventListener('click', closeLevel2);
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('level2').classList.contains('show')){
+    closeLevel2();
+  }
+});
+
+function renderLevel2(){
+  const inter = L2.interior;
+  document.getElementById('l2Name').textContent = inter.buildingName;
+  const building = LANDMARKS.find(l => l.id === inter.buildingId);
+  document.getElementById('l2Sub').textContent =
+    `${building?.h || '—'}m 高 · ${inter.floors.length} 层 · 程序化模拟数据`;
+  document.getElementById('l2Total').textContent = inter.totalUnits;
+  const occEl = document.getElementById('l2Occ');
+  occEl.textContent = (inter.occupancyRate*100).toFixed(0) + '%';
+  occEl.className = 'v ' + (inter.occupancyRate > 0.9 ? 'good' : inter.occupancyRate > 0.75 ? '' : 'warn');
+  document.getElementById('l2Area').textContent = (inter.totalArea/1000).toFixed(1) + 'k㎡';
+
+  // 楼层列表
+  const fl = document.getElementById('l2Floors');
+  // 汇总卡
+  const summaryHTML = `
+    <div class="floor-summary">
+      <div class="row"><span class="k">主营业态</span><span class="v">${topCategory(inter)}</span></div>
+      <div class="row"><span class="k">平均月租</span><span class="v">${avgRent(inter)}元/㎡</span></div>
+      <div class="row"><span class="k">空铺数</span><span class="v">${vacantCount(inter)}</span></div>
+    </div>
+  `;
+  fl.innerHTML = summaryHTML + inter.floors.map((f, i) => `
+    <div class="floor-item ${i===L2.curFloorIdx?'active':''}" data-idx="${i}">
+      <div class="info">
+        <span class="nm">${f.id}</span>
+        <span class="desc">${f.label}</span>
+      </div>
+      <span class="cnt">${f.units.length}铺</span>
+    </div>
+  `).join('');
+  fl.querySelectorAll('.floor-item').forEach(el => {
+    el.addEventListener('click', () => {
+      L2.curFloorIdx = +el.dataset.idx;
+      L2.selectedUnit = null;
+      renderLevel2();
+    });
+  });
+
+  // 图例
+  const legendCats = collectFloorCategories(inter.floors[L2.curFloorIdx]);
+  document.getElementById('planLegend').innerHTML = legendCats.map(c =>
+    `<div class="lg-row"><span class="sw" style="background:${c.color}"></span>${c.icon} ${c.type}</div>`
+  ).join('');
+
+  // 渲染平面图
+  drawPlan();
+  // 重渲染选中单元
+  if (L2.selectedUnit){
+    renderUnitDetail(L2.selectedUnit);
+  } else {
+    document.getElementById('l2Unit').innerHTML = '<div class="empty">点击中间任一格<br>查看商铺详情</div>';
+  }
+}
+
+function topCategory(inter){
+  const counts = {};
+  inter.floors.flatMap(f => f.units).forEach(u => {
+    counts[u.cat] = (counts[u.cat]||0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  return sorted[0] ? sorted[0][0] + ' (' + sorted[0][1] + ')' : '—';
+}
+function avgRent(inter){
+  const all = inter.floors.flatMap(f => f.units).filter(u => u.status !== 'vacant');
+  const avg = all.reduce((s,u)=>s+u.rent, 0) / Math.max(1, all.length);
+  return Math.round(avg);
+}
+function vacantCount(inter){
+  return inter.floors.flatMap(f => f.units).filter(u => u.status === 'vacant').length;
+}
+function collectFloorCategories(floor){
+  const seen = new Map();
+  floor.units.forEach(u => {
+    if (!seen.has(u.type)) seen.set(u.type, { type:u.type, color:u.color, icon:u.icon });
+  });
+  return [...seen.values()].slice(0, 8);
+}
+
+// ============ 二级沙盘 · Three.js 真 3D 渲染 ============
+const planCv = document.getElementById('planCanvas');
+const l2Three = { scene:null, camera:null, renderer:null, controls:null, floorGroup:null, unitMeshes:new Map() };
+
+function hex2int(s){ return parseInt(s.replace('#',''), 16); }
+
+// 圆角矩形辅助
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// 用 canvas 生成"店铺名 + emoji"标签贴图，挂成 Sprite 飘在铺位顶上
+// 画顶面贴图：直接画在立方体顶部，不再是悬浮气泡
+// 返回 PhysicalMaterial（map = CanvasTexture）
+function makeUnitTopMaterial(unit, bodyColorHex){
+  // 等比例 1.44:1 (cellW=26 / cellD=18)，画在 416×288 上保证字够锐
+  const W = 416, H = 288;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const isCand = unit.candidate;
+  const isVacant = unit.status === 'vacant';
+
+  // 1) 底色（与侧面同色，融合一体）
+  const baseRGB = '#' + bodyColorHex.toString(16).padStart(6,'0');
+  ctx.fillStyle = baseRGB;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2) 候选金色覆盖（叠一层暖光）
+  if (isCand){
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(255,234,170,0.55)');
+    grad.addColorStop(1, 'rgba(232,200,110,0.40)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // 3) 内描边（薄边框，区分单元）
+  ctx.strokeStyle = isCand ? '#d4af37' : 'rgba(255,255,255,0.45)';
+  ctx.lineWidth = isCand ? 7 : 3;
+  ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, W-ctx.lineWidth, H-ctx.lineWidth);
+
+  // 4) 决定文字颜色（按底色亮度自适应）
+  const r = (bodyColorHex >> 16) & 0xff;
+  const g = (bodyColorHex >> 8) & 0xff;
+  const b = bodyColorHex & 0xff;
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  const isDark = luminance < 0.55;
+  const fgMain = isDark ? '#ffffff' : '#1d1d1f';
+  const fgSub  = isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.50)';
+
+  // 5) 空铺：居中显示"招商中"
+  if (isVacant){
+    ctx.fillStyle = '#ff9500';
+    ctx.font = '700 38px -apple-system,"PingFang SC"';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('招商中', W/2, H/2 - 10);
+    ctx.font = '500 22px -apple-system,"PingFang SC"';
+    ctx.fillStyle = fgSub;
+    ctx.fillText(unit.area + '㎡ · ¥' + unit.rent + '/㎡', W/2, H/2 + 28);
+  } else {
+    // 6) emoji（左上）+ 店铺名（emoji 右侧大字）+ 业态/面积/租金（底部）
+    ctx.fillStyle = fgMain;
+    ctx.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji"';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(unit.icon || '🏷', 60, 80);
+
+    // 店铺名
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = fgMain;
+    ctx.font = '700 40px -apple-system,"PingFang SC",sans-serif';
+    let name = unit.name;
+    if (name.length > 9) name = name.slice(0, 8) + '…';
+    ctx.fillText(name, 110, 78);
+
+    // 候选标识
+    if (isCand){
+      ctx.font = '700 22px -apple-system,"PingFang SC"';
+      ctx.fillStyle = '#8a6800';
+      ctx.fillText('★ 候选铺位', 110, 122);
+    } else {
+      ctx.font = '600 22px -apple-system,"PingFang SC"';
+      ctx.fillStyle = fgSub;
+      ctx.fillText(unit.type || '—', 110, 122);
+    }
+
+    // 底部细节
+    ctx.font = '600 26px -apple-system,"PingFang SC",sans-serif';
+    ctx.fillStyle = fgSub;
+    ctx.textAlign = 'left';
+    ctx.fillText(unit.area + '㎡', 40, H - 38);
+    ctx.textAlign = 'right';
+    ctx.fillText('¥' + unit.rent + '/㎡·月', W - 40, H - 38);
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.anisotropy = 8;
+  return new THREE.MeshPhysicalMaterial({
+    map: tex,
+    color: 0xffffff,
+    roughness: 0.50, metalness: 0.06,
+    clearcoat: 0.45, clearcoatRoughness: 0.30,
+    emissive: isCand ? 0xd4af37 : 0x000000,
+    emissiveIntensity: isCand ? 0.18 : 0,
+  });
+}
+
+function initLevel2Scene(){
+  if (l2Three.scene) return;
+  l2Three.renderer = new THREE.WebGLRenderer({ canvas: planCv, antialias: true, alpha: true });
+  l2Three.renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+  l2Three.renderer.shadowMap.enabled = true;
+  l2Three.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  l2Three.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  l2Three.renderer.toneMappingExposure = 1.05;
+  l2Three.renderer.setClearColor(0xf2f5f9, 1);
+
+  l2Three.scene = new THREE.Scene();
+  l2Three.scene.fog = new THREE.Fog(0xeef2f7, 400, 900);
+
+  l2Three.camera = new THREE.PerspectiveCamera(36, 1, 0.5, 2000);
+  l2Three.camera.position.set(180, 200, 240);
+
+  l2Three.controls = new OrbitControls(l2Three.camera, planCv);
+  l2Three.controls.enableDamping = true;
+  l2Three.controls.dampingFactor = 0.08;
+  l2Three.controls.zoomSpeed = 2.5;
+  l2Three.controls.minDistance = 120;
+  l2Three.controls.maxDistance = 520;
+  l2Three.controls.minPolarAngle = 0.25;
+  l2Three.controls.maxPolarAngle = Math.PI * 0.46;
+  l2Three.controls.target.set(0, 5, 0);
+
+  // 灯光
+  l2Three.scene.add(new THREE.HemisphereLight(0xffffff, 0xe5e9ef, 0.92));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.15);
+  dir.position.set(120, 240, 160);
+  dir.castShadow = true;
+  dir.shadow.mapSize.set(2048, 2048);
+  const sd = 280;
+  dir.shadow.camera.left=-sd; dir.shadow.camera.right=sd;
+  dir.shadow.camera.top=sd; dir.shadow.camera.bottom=-sd;
+  dir.shadow.camera.near=1; dir.shadow.camera.far=800;
+  dir.shadow.bias = -0.0002;
+  l2Three.scene.add(dir);
+  const fill = new THREE.DirectionalLight(0xc8d8ff, 0.4);
+  fill.position.set(-200, 160, -80);
+  l2Three.scene.add(fill);
+
+  l2Three.floorGroup = new THREE.Group();
+  l2Three.scene.add(l2Three.floorGroup);
+
+  // 楼层"地基"地表
+  const baseGeo = new THREE.PlaneGeometry(2000, 2000);
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0xeaeef3, roughness: 0.92 });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.rotation.x = -Math.PI/2;
+  base.position.y = -2;
+  base.receiveShadow = true;
+  l2Three.scene.add(base);
+
+  resizeLevel2();
+}
+
+function resizeLevel2(){
+  if (!l2Three.renderer) return;
+  const rect = planCv.parentElement.getBoundingClientRect();
+  l2Three.renderer.setSize(rect.width, rect.height, false);
+  planCv.style.width = rect.width + 'px';
+  planCv.style.height = rect.height + 'px';
+  l2Three.camera.aspect = rect.width / rect.height;
+  l2Three.camera.updateProjectionMatrix();
+}
+
+// 清空当前楼层 mesh
+function clearFloorMeshes(){
+  while (l2Three.floorGroup.children.length){
+    const c = l2Three.floorGroup.children[0];
+    l2Three.floorGroup.remove(c);
+    if (c.geometry) c.geometry.dispose();
+    if (c.material){
+      const mats = Array.isArray(c.material) ? c.material : [c.material];
+      mats.forEach(m => {
+        if (m.map) m.map.dispose();
+        m.dispose();
+      });
+    }
+  }
+  l2Three.unitMeshes.clear();
+}
+
+// 构建当前楼层的 3D meshes
+function buildFloor3D(){
+  clearFloorMeshes();
+
+  const floor = L2.interior.floors[L2.curFloorIdx];
+  const N = floor.units.length;
+  const cols = Math.ceil(Math.sqrt(N * 1.4));
+  const rows = Math.ceil(N / cols);
+  const cellW = 26, cellD = 18, gap = 2;
+  const totalW = cols * cellW + (cols-1) * gap;
+  const totalD = rows * cellD + (rows-1) * gap;
+
+  // 楼板 slab（圆角靠厚度营造）
+  const slabW = totalW + 28, slabD = totalD + 28;
+  const slab = new THREE.Mesh(
+    new THREE.BoxGeometry(slabW, 4, slabD),
+    new THREE.MeshStandardMaterial({ color: 0xdde2e9, roughness: 0.85, metalness: 0.05 })
+  );
+  slab.position.y = -2;
+  slab.receiveShadow = true;
+  l2Three.floorGroup.add(slab);
+
+  // 楼板边缘金线（候选楼层用金边强调）
+  const hasCandidate = floor.units.some(u => u.candidate);
+  if (hasCandidate){
+    const edge = new THREE.Mesh(
+      new THREE.BoxGeometry(slabW+1, 0.6, slabD+1),
+      new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4, metalness: 0.7 })
+    );
+    edge.position.y = 0.2;
+    l2Three.floorGroup.add(edge);
+  }
+
+  // 单元
+  let idx = 0;
+  for (let r=0; r<rows && idx<N; r++){
+    for (let c=0; c<cols && idx<N; c++, idx++){
+      const u = floor.units[idx];
+
+      // 高度按业态 + 面积，办公楼相对薄、商业相对厚、候选最高
+      let h;
+      if (u.candidate)       h = 14;
+      else if (u.status === 'vacant') h = 3;
+      else if (u.cat === 'Office')    h = 5;
+      else if (u.cat === 'F&B')       h = 7 + Math.min(4, u.area/120);
+      else if (u.cat === 'Retail')    h = 9 + Math.min(5, u.area/150);
+      else if (u.cat === 'Ent')       h = 13;
+      else                            h = 8;
+
+      const colorInt = u.status === 'vacant' ? 0xc8cdd5 : hex2int(u.color);
+      // 侧面 baseMat（5 个面共享，用于 hover/select 发光）
+      const sideMat = new THREE.MeshPhysicalMaterial({
+        color: colorInt,
+        roughness: 0.55,
+        metalness: 0.08,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.4,
+        emissive: u.candidate ? 0xd4af37 : 0x000000,
+        emissiveIntensity: u.candidate ? 0.35 : 0,
+      });
+      // 顶面 = CanvasTexture（emoji + 店铺名 + 业态/面积/租金）
+      const topMat = makeUnitTopMaterial(u, colorInt);
+      // BoxGeometry 6 面材质顺序：+X, -X, +Y(顶), -Y(底), +Z, -Z
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(cellW-0.6, h, cellD-0.6),
+        [sideMat, sideMat, topMat, sideMat, sideMat, sideMat]
+      );
+      const x = c*(cellW+gap) - totalW/2 + cellW/2;
+      const z = r*(cellD+gap) - totalD/2 + cellD/2;
+      mesh.position.set(x, h/2, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.userData = {
+        unit: u, baseH: h,
+        sideMat,
+        baseEmissive: sideMat.emissive.clone(),
+        baseIntensity: sideMat.emissiveIntensity,
+      };
+      l2Three.floorGroup.add(mesh);
+      l2Three.unitMeshes.set(u.id, mesh);
+
+      // 候选铺位顶上加一个金色小尖塔
+      if (u.candidate){
+        const star = new THREE.Mesh(
+          new THREE.OctahedronGeometry(1.8, 0),
+          new THREE.MeshStandardMaterial({ color: 0xd4af37, emissive: 0xd4af37, emissiveIntensity: 0.6, metalness: 0.7, roughness: 0.3 })
+        );
+        star.position.set(x, h + 3.5, z);
+        star.castShadow = true;
+        star.userData.isStar = true;
+        star.userData.baseY = star.position.y;
+        l2Three.floorGroup.add(star);
+      }
+
+      // 空铺加一个浅虚线圈
+      if (u.status === 'vacant'){
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(cellW*0.36, cellW*0.38, 24),
+          new THREE.MeshBasicMaterial({ color: 0xff9500, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI/2;
+        ring.position.set(x, 0.4, z);
+        l2Three.floorGroup.add(ring);
+      }
+    }
+  }
+
+  // 调整相机：拉到能看全的距离
+  const span = Math.max(totalW, totalD);
+  const targetDist = span * 1.4;
+  const offset = new THREE.Vector3(0.7, 0.85, 1).normalize().multiplyScalar(targetDist);
+  l2Three.camera.position.copy(offset);
+  l2Three.controls.target.set(0, 5, 0);
+  l2Three.controls.update();
+}
+
+// hover tooltip（HTML 元素跟随鼠标）
+let hoverTip = document.getElementById('hoverTip');
+if (!hoverTip){
+  hoverTip = document.createElement('div');
+  hoverTip.id = 'hoverTip';
+  hoverTip.style.cssText = `
+    position: fixed; pointer-events: none; z-index: 200;
+    padding: 6px 11px; border-radius: 8px;
+    background: rgba(29,29,31,0.92); color: white;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transition: opacity 0.15s ease;
+    white-space: nowrap;
+  `;
+  document.body.appendChild(hoverTip);
+}
+
+// raycaster
+const l2Ray = new THREE.Raycaster();
+const l2Mouse = new THREE.Vector2();
+planCv.addEventListener('mousemove', e => {
+  if (!L2.interior) return;
+  const r = planCv.getBoundingClientRect();
+  l2Mouse.x = ((e.clientX - r.left)/r.width)*2 - 1;
+  l2Mouse.y = -((e.clientY - r.top)/r.height)*2 + 1;
+  l2Ray.setFromCamera(l2Mouse, l2Three.camera);
+  const meshes = [...l2Three.unitMeshes.values()];
+  const hits = l2Ray.intersectObjects(meshes);
+  const newHover = hits.length ? hits[0].object.userData.unit : null;
+  if (newHover !== L2.hoverUnit){
+    L2.hoverUnit = newHover;
+  }
+  if (newHover){
+    hoverTip.style.opacity = 1;
+    hoverTip.style.left = (e.clientX + 14) + 'px';
+    hoverTip.style.top  = (e.clientY + 14) + 'px';
+    const cat = newHover.cat || '';
+    hoverTip.innerHTML = `<b>${newHover.icon || ''} ${newHover.name}</b><br><span style="opacity:0.6">${newHover.type} · ${newHover.area}㎡ · ¥${newHover.rent}/㎡·月</span>`;
+    planCv.style.cursor = 'pointer';
+  } else {
+    hoverTip.style.opacity = 0;
+    planCv.style.cursor = 'grab';
+  }
+});
+planCv.addEventListener('mouseleave', () => {
+  L2.hoverUnit = null;
+  hoverTip.style.opacity = 0;
+});
+planCv.addEventListener('click', () => {
+  if (L2.hoverUnit) selectUnit(L2.hoverUnit);
+});
+
+function selectUnit(u){
+  L2.selectedUnit = u;
+  renderUnitDetail(u);
+}
+
+// 重构 drawPlan() 为 3D 版本：初始化场景（首次）+ 构建当前楼层
+function drawPlan(){
+  initLevel2Scene();
+  resizeLevel2();
+  buildFloor3D();
+}
+
+// 二级沙盘自己的动画循环
+let l2Running = false;
+function animateLevel2(){
+  if (l2Running) return;       // 已经在跑就不重复启动
+  l2Running = true;
+  const tick = () => {
+    if (!document.getElementById('level2').classList.contains('show')){
+      l2Running = false;
+      return;
+    }
+    const t = performance.now()/1000;
+    // 单元 hover / select / candidate 视觉
+    l2Three.unitMeshes.forEach(mesh => {
+      const u = mesh.userData.unit;
+      const side = mesh.userData.sideMat;     // 侧面材质（驱动 hover/select 发光）
+      const isHover = u === L2.hoverUnit;
+      const isSel = u === L2.selectedUnit;
+      if (u.candidate){
+        // 呼吸金光
+        side.emissiveIntensity = 0.30 + 0.20*Math.sin(t*2.5);
+        if (isSel){
+          side.emissive = new THREE.Color(0x4a90e2);
+          side.emissiveIntensity = 0.6;
+        } else {
+          side.emissive = new THREE.Color(0xd4af37);
+        }
+      } else if (isSel){
+        side.emissive = new THREE.Color(0x4a90e2);
+        side.emissiveIntensity = 0.5;
+        mesh.scale.y = 1.1;
+      } else if (isHover){
+        side.emissive = new THREE.Color(0xffffff);
+        side.emissiveIntensity = 0.18;
+        mesh.scale.y = 1.05;
+      } else {
+        side.emissive = mesh.userData.baseEmissive;
+        side.emissiveIntensity = mesh.userData.baseIntensity;
+        mesh.scale.y = 1;
+      }
+    });
+    // 候选小金星轻浮
+    l2Three.floorGroup.children.forEach(c => {
+      if (c.userData.isStar){
+        c.position.y = c.userData.baseY + Math.sin(t*1.8)*0.6;
+        c.rotation.y += 0.02;
+      }
+    });
+    l2Three.controls.update();
+    l2Three.renderer.render(l2Three.scene, l2Three.camera);
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function renderUnitDetail(u){
+  const sp = u.spotId ? SPOTS.find(s => s.id === u.spotId) : null;
+  const statusLabel = { occupied:'在营', vacant:'招商中', candidate:'★ 候选铺位' }[u.status];
+  const narr = u.status === 'vacant' ?
+    `<b>空铺招商中</b>。这是一个 ${u.area}㎡ 的位置，月租约 ${u.rent} 元/㎡。${
+      u.cat === 'Office' ? '适合中小型公司入驻。' : '业态规划为' + u.type + '，可参考同层在营品牌。'
+    }` :
+    u.status === 'candidate' ?
+    `<b>当前评估目标</b>。这就是右侧仪表盘正在评估的候选铺位。点击下方"返回外部"看完整 5 维评分。` :
+    u.cat === 'Office' ?
+    `<b>${u.name}</b> 入驻办公。建筑总占用率 ${(L2.interior.occupancyRate*100).toFixed(0)}%，金融业属性强、白领密度高。` :
+    `<b>${u.name}</b> 是该楼层 ${u.type} 业态代表。${u.cat === 'F&B' ? '午餐时段是主要客流。' : u.cat === 'Retail' ? '客单价较高，决策周期长。' : '提供生活服务，复购率高。'}`;
+
+  document.getElementById('l2Unit').innerHTML = `
+    <div class="unit-card">
+      <div class="head">
+        <div class="icon">${u.icon}</div>
+        <div class="nm-wrap">
+          <div class="nm">${u.name}</div>
+          <div class="uid">${u.id}</div>
+        </div>
+        <span class="status ${u.status}">${statusLabel}</span>
+      </div>
+      <span class="type-tag" style="background:${u.color}22;color:${u.color}">${u.cat} · ${u.type}</span>
+      <div class="stats">
+        <div class="stat-it"><div class="k">面积</div><div class="v">${u.area}<span style="font-size:11px;color:#86868b">㎡</span></div></div>
+        <div class="stat-it"><div class="k">月租金</div><div class="v">${u.rent}<span style="font-size:11px;color:#86868b">元/㎡</span></div></div>
+        <div class="stat-it"><div class="k">楼层</div><div class="v">${u.floorId}</div></div>
+        <div class="stat-it"><div class="k">月租额</div><div class="v">${(u.rent*u.area/10000).toFixed(1)}<span style="font-size:11px;color:#86868b">万</span></div></div>
+      </div>
+      <div class="narr">${narr}</div>
+      <div class="actions">
+        ${sp ? `<button class="btn-act" data-act="setSpot" data-id="${sp.id}">设为评估目标</button>` : ''}
+        <button class="btn-act ghost" data-act="back">返回外部沙盘</button>
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('#l2Unit .btn-act[data-act]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (b.dataset.act === 'setSpot'){
+        state.spotId = b.dataset.id;
+        document.getElementById('spotSelect').value = state.spotId;
+        rebuildSpotMarker();
+        refreshAll();
+        closeLevel2();
+      } else if (b.dataset.act === 'back'){
+        closeLevel2();
+      }
+    });
+  });
+}
+
+// 窗口 resize 时重画
+window.addEventListener('resize', () => {
+  if (document.getElementById('level2').classList.contains('show')) drawPlan();
+});
+
+// ============ CURRENT LOT 面板折叠 ============
+const stageBadge = document.getElementById('stageBadge');
+const badgeCollapseBtn = document.getElementById('badgeCollapse');
+const badgeLabel = document.getElementById('badgeLabel');
+
+function setBadgeCollapsed(collapsed){
+  if (collapsed){
+    stageBadge.classList.add('collapsed');
+    // 折叠态：label 显示当前铺位名（更有上下文）
+    const sp = SPOTS.find(s => s.id === state.spotId);
+    badgeLabel.textContent = sp ? sp.name : 'CURRENT LOT';
+  } else {
+    stageBadge.classList.remove('collapsed');
+    badgeLabel.textContent = 'CURRENT LOT';
+  }
+  sessionStorage.setItem('badgeCollapsed', collapsed ? '1' : '0');
+}
+badgeCollapseBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  setBadgeCollapsed(!stageBadge.classList.contains('collapsed'));
+});
+// 折叠态时点击整个药丸也展开
+stageBadge.addEventListener('click', e => {
+  if (stageBadge.classList.contains('collapsed')){
+    setBadgeCollapsed(false);
+  }
+});
+// 还原上次状态
+if (sessionStorage.getItem('badgeCollapsed') === '1'){
+  setBadgeCollapsed(true);
+}
+
+// ============ 动画 ============
+let t = 0;
+let lastTime = performance.now();
+function animate(){
+  const now = performance.now();
+  const dt = Math.min(0.05, (now - lastTime)/1000);
+  lastTime = now;
+  t += 0.016;
+  // 小人行走
+  updateCharacter(dt);
+  updateCameraTween();
+  // popup 位置跟随
+  if (popupTarget) syncPopupPos();
+  if (particles){
+    const pos = particles.geometry.attributes.position.array;
+    const N = pos.length/3;
+    const speedMul = PERIODS[state.period].mul;
+    for (let i=0;i<N;i++){
+      if (axes[i]===0){
+        pos[i*3] += speeds[i] * speedMul;
+        if (pos[i*3]>500) pos[i*3]=-500;
+      } else {
+        pos[i*3+2] += speeds[i] * speedMul;
+        if (pos[i*3+2]>500) pos[i*3+2]=-500;
+      }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  }
+  metroGroups.forEach((grp, idx)=>{
+    grp.children.forEach(ch=>{
+      if (ch.userData.baseR){
+        const k = 1 + 0.04*Math.sin(t*1.4 + ch.userData.phase + idx);
+        ch.scale.set(k,k,k);
+      }
+    });
+  });
+  // "未选铺位" 金色↓箭头浮动
+  hintArrowGroup.children.forEach(a => {
+    a.position.y = a.userData.baseY + Math.sin(t*2 + a.userData.phase)*2;
+    a.rotation.y += 0.02;
+  });
+
+  if (spotBeam) spotBeam.material.opacity = 0.16 + 0.10*Math.sin(t*2);
+  // 候选铺位地面脉冲环
+  if (spotRingPulse){
+    const elapsed = (performance.now() - spotRingPulse.userData.t0)/1000;
+    const phase = (elapsed % 2.0) / 2.0;
+    const scale = 1 + phase * 4;
+    spotRingPulse.scale.set(scale, scale, 1);
+    spotRingPulse.material.opacity = 0.6 * (1 - phase);
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// 启动：把还原的 state 同步到 UI 控件
+(function syncUIFromState(){
+  // 业态：先暂存 cat，populateL2 会重置 state.cat
+  const savedCat = state.cat;
+  if (savedCat && CATEGORIES[savedCat]){
+    catL1Sel.value = CATEGORIES[savedCat].L1;
+    populateL2(CATEGORIES[savedCat].L1);   // 此处 state.cat 被清成 null
+    catL2Sel.value = savedCat;
+    state.cat = savedCat;                   // 恢复
+  }
+  // 铺位
+  if (state.spotId && SPOTS.find(s => s.id === state.spotId)){
+    spotSelect.value = state.spotId;
+  } else {
+    state.spotId = null;                    // 失效的铺位 id 也清掉
+  }
+  // 时段
+  document.querySelectorAll('#periodCtrl .p').forEach(p => {
+    p.classList.toggle('active', p.dataset.period === state.period);
+  });
+  // 月份
+  document.getElementById('monthSlider').value = state.month;
+  document.getElementById('monthTxt').textContent = MONTH_NAMES[state.month-1];
+  updateMonthBg();
+})();
+
+rebuildParticles(PERIODS[state.period].particles);
+rebuildSpotMarker();
+rebuildCompPoints();
+refreshAll();
+animate();
+
+// ============ 全局键盘快捷键 ============
+window.addEventListener('keydown', e => {
+  // 在 input/select/textarea 里时不响应
+  if (e.target.matches('input, select, textarea')) return;
+  // ESC 已在别处处理 popup / level2，再加一项：ESC 取消寻路
+  if (e.key === 'Escape' && nav.walking){ cancelWalk(); return; }
+  // R 回到默认视角
+  if (e.key === 'r' || e.key === 'R'){ camResetToDefault(); return; }
+  // Space 清空选择
+  if (e.key === ' '){
+    e.preventDefault();
+    document.getElementById('resetSelBtn').click();
+    return;
+  }
+  // 1-4 切时段
+  const periodMap = {'1':'morning', '2':'lunch', '3':'evening', '4':'off'};
+  if (periodMap[e.key]){
+    const btn = document.querySelector(`#periodCtrl .p[data-period="${periodMap[e.key]}"]`);
+    if (btn) btn.click();
+    return;
+  }
+  // ← → 调月份（仅在二级沙盘未打开时）
+  const level2Open = document.getElementById('level2').classList.contains('show');
+  if (!level2Open && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')){
+    const slider = document.getElementById('monthSlider');
+    const delta = e.key === 'ArrowLeft' ? -1 : 1;
+    slider.value = Math.max(1, Math.min(12, +slider.value + delta));
+    slider.dispatchEvent(new Event('input'));
+    return;
+  }
+  // 二级沙盘打开时：↑↓ 切楼层
+  if (level2Open && (e.key === 'ArrowUp' || e.key === 'ArrowDown')){
+    e.preventDefault();
+    if (!L2.interior) return;
+    const total = L2.interior.floors.length;
+    const delta = e.key === 'ArrowUp' ? 1 : -1;  // ↑ = 高一层 = idx+1
+    L2.curFloorIdx = Math.max(0, Math.min(total-1, L2.curFloorIdx + delta));
+    L2.selectedUnit = null;
+    renderLevel2();
+    return;
+  }
+});
+
+window.addEventListener('resize', () => {
+  sizeRenderer();
+  camera.aspect = stage.clientWidth/stage.clientHeight;
+  camera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

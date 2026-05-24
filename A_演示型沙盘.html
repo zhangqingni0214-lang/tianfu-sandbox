@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>套餐 A · 演示型沙盘 — 天府国际金融中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: linear-gradient(180deg, #f7f9fc 0%, #eaeef3 100%);
+    color: #1d1d1f;
+  }
+  #scene { position: absolute; inset: 0; }
+  .panel {
+    position: absolute;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(60,80,110,0.10), 0 2px 6px rgba(60,80,110,0.06);
+    padding: 18px 20px;
+  }
+  #hud-top { top: 22px; left: 22px; width: 320px; }
+  #hud-top h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; }
+  #hud-top .sub { font-size: 11px; color: #86868b; margin-top: 3px; letter-spacing: 0.4px; }
+  #hud-top .scores { display: flex; gap: 10px; margin-top: 14px; }
+  #hud-top .scores .card {
+    flex: 1; background: rgba(245,247,250,0.65); border-radius: 12px; padding: 10px 12px;
+  }
+  #hud-top .scores .label { font-size: 10px; color: #86868b; letter-spacing: 0.3px; }
+  #hud-top .scores .val { font-size: 22px; font-weight: 600; color: #1d1d1f; margin-top: 2px; }
+  #hud-top .scores .unit { font-size: 11px; color: #86868b; margin-left: 3px; }
+
+  #radar-panel { top: 22px; right: 22px; width: 280px; }
+  #radar-panel h2 { font-size: 12px; font-weight: 600; color: #1d1d1f; letter-spacing: 0.6px; }
+  #radarCanvas { width: 100%; height: 220px; margin-top: 6px; }
+
+  #legend { bottom: 22px; left: 22px; padding: 14px 18px; }
+  #legend .row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #424245; margin: 4px 0; }
+  #legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  #info-card {
+    bottom: 22px; right: 22px; width: 320px;
+    transform: translateY(8px); opacity: 0; transition: all 0.35s cubic-bezier(.22,.8,.36,1);
+    pointer-events: none;
+  }
+  #info-card.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  #info-card .ttl { font-size: 14px; font-weight: 600; }
+  #info-card .ttl .tag { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #eef2f7; color: #5e6470; margin-left: 6px; font-weight: 500; }
+  #info-card .desc { font-size: 11px; color: #86868b; margin-top: 4px; }
+  #info-card .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  #info-card .metrics .m { background: rgba(245,247,250,0.7); padding: 8px 10px; border-radius: 10px; }
+  #info-card .metrics .k { font-size: 10px; color: #86868b; }
+  #info-card .metrics .v { font-size: 14px; font-weight: 600; margin-top: 1px; }
+
+  #footer {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: #a1a1a6; letter-spacing: 0.5px;
+  }
+  .badge {
+    display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 8px;
+    background: linear-gradient(135deg, #d4af37, #f6e6a6); color: #6b5008;
+    font-weight: 600; letter-spacing: 0.5px; margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div id="hud-top" class="panel">
+  <h1>天府国际金融中心 <span class="badge">套餐 A · 演示</span></h1>
+  <div class="sub">CHENGDU · TIANFU IFC · CORE 500m</div>
+  <div class="scores">
+    <div class="card">
+      <div class="label">综合评分</div>
+      <div class="val" id="kpiScore">—<span class="unit">/10</span></div>
+    </div>
+    <div class="card">
+      <div class="label">预测年营收</div>
+      <div class="val" id="kpiRev">—<span class="unit">万</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="radar-panel" class="panel">
+  <h2>五维雷达 / 5-DIMENSION</h2>
+  <canvas id="radarCanvas" width="540" height="440"></canvas>
+</div>
+
+<div id="legend" class="panel">
+  <div class="row"><span class="dot" style="background:#ffffff;border:1px solid #c7cdd5"></span>普通建筑</div>
+  <div class="row"><span class="dot" style="background:#d4af37"></span>锚店 / IFC 主塔</div>
+  <div class="row"><span class="dot" style="background:#4a90e2"></span>候选铺位</div>
+  <div class="row"><span class="dot" style="background:#34c759"></span>地铁口（200m 半衰光圈）</div>
+</div>
+
+<div id="info-card" class="panel">
+  <div class="ttl" id="icTtl">—</div>
+  <div class="desc" id="icDesc">点击建筑查看明细</div>
+  <div class="metrics">
+    <div class="m"><div class="k">地理性 G</div><div class="v" id="icG">—</div></div>
+    <div class="m"><div class="k">经济 E (万/日)</div><div class="v" id="icE">—</div></div>
+    <div class="m"><div class="k">单店日营收</div><div class="v" id="icRev">—</div></div>
+    <div class="m"><div class="k">竞争修正 K</div><div class="v" id="icK">—</div></div>
+  </div>
+</div>
+
+<div id="footer">数据：PDF 实测 + AI 估算补齐 · 公式：G②+E①+C①+K①+X① · Three.js 渲染</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ---------- Tianfu IFC 核心 500m 建筑布局 ----------
+// 单位 = 米；x 东西，z 南北（屏幕里 z 朝相机为正）
+const BUILDINGS = [
+  // 天府国际金融中心 — 锚塔群
+  { id:'IFC1',  name:'天府国际金融中心 T1', cat:'office', anchor:true,  x:-40, z:-20, w:60, d:55, h:220, color:0xffffff },
+  { id:'IFC2',  name:'天府国际金融中心 T2', cat:'office', anchor:true,  x:30,  z:-30, w:55, d:50, h:200, color:0xffffff },
+  { id:'TWIN1', name:'成都金融城双子塔 南', cat:'office', anchor:true,  x:90,  z:30,  w:45, d:45, h:218, color:0xfaf9f6 },
+  { id:'TWIN2', name:'成都金融城双子塔 北', cat:'office', anchor:true,  x:90,  z:-50, w:45, d:45, h:218, color:0xfaf9f6 },
+  // 银泰 in99 — 大体量低层
+  { id:'IN99',  name:'成都银泰中心 in99',    cat:'mall',   anchor:true,  x:-120,z:50,  w:120,d:90, h:55,  color:0xf2eee4 },
+  // 商办
+  { id:'AFC',   name:'中国华商金融中心',     cat:'office', x:-130,z:-90, w:60, d:55, h:160, color:0xffffff },
+  { id:'JZ',    name:'交子金融广场 T1',      cat:'office', x:170, z:-90, w:50, d:50, h:180, color:0xffffff },
+  { id:'JZ2',   name:'交子金融广场 T2',      cat:'office', x:170, z:60,  w:48, d:48, h:165, color:0xffffff },
+  // 住宅 / 商住
+  { id:'R1',    name:'枫丹国际',             cat:'res',    x:-180,z:80,  w:50, d:50, h:90,  color:0xf6f1ea },
+  { id:'R2',    name:'中国华商交子公馆',     cat:'res',    x:200, z:140, w:55, d:55, h:110, color:0xf6f1ea },
+  { id:'R3',    name:'瑞禧公馆',             cat:'res',    x:-60, z:160, w:48, d:48, h:85,  color:0xf6f1ea },
+  // 在建
+  { id:'C1',    name:'金融城 8 号（建设中）', cat:'build', x:-200,z:-30, w:60, d:50, h:80,  color:0xe2e6ec },
+  // 候选铺位（地面层）
+  { id:'SHOP',  name:'候选铺位 · IFC 临街', cat:'shop', candidate:true, x:5, z:30, w:18, d:12, h:6, color:0x4a90e2 },
+];
+
+const METRO = [
+  { id:'M1', name:'金融城站',  x:0,   z:80 },
+  { id:'M2', name:'双子塔站',  x:130, z:0 },
+];
+
+// ---------- 五维数据（套餐 A 公式：G②+E①+C①+K①+X①） ----------
+const DATA = {
+  population: 442000, density: 35194, malls: 11, hotels: 221,
+  metro_stations: 14, bus_stations: 160, restaurants: 2092, retail: 2309,
+  rent_per_m2_month: 100.2, avg_floors: 29, offices: 301,
+  per_capita_monthly_consume: 2681,
+  propensity_pi: 0.85,    // 客群消费倾向
+  match_M: 0.9,           // 业态匹配度（咖啡）
+  same_cat_count: 35,     // 同业咖啡数
+  complement_count: 500,
+  anchor_w: 0.95,
+  saturation: 0.65,
+  // 外部
+  pol: 1.5, risk: -0.5, media: 8.2, sent: 0.6,
+};
+
+// === 计算逻辑（A 套）===
+function calcG_advanced(d_m, T, S, f_floor, C){
+  const R = Math.exp(-d_m/200);
+  const Gmax = 10 * 1.0 * 1.0 * 1.0 * (0.5 + 0.05*10);  // 10
+  const G = T * R * (S/10) * f_floor * (0.5 + 0.05*C);
+  return Math.min(10, G/Gmax*10);
+}
+function calcE_basic(F, P_month, pi, M){
+  // 输出潜在日盘子（万元）
+  const P_day = P_month/30;
+  return F * P_day * pi * M / 10000;
+}
+function calcRev_basic(F_pass, r1, r2, r3, AOV){
+  return F_pass * r1 * r2 * r3 * AOV;
+}
+function calcK_basic(sigma, Ncomp, Nsame, Wa){
+  return 1 - sigma*0.6 + (Ncomp/Nsame)*0.05 + Wa*0.2;
+}
+function calcX_basic(pol, risk, media, sent){
+  return 1 + 0.05*pol + 0.03*risk + 0.01*media + 0.05*sent;
+}
+
+// 候选铺位的五维实时计算
+function computeFiveD(shop){
+  const d_m = Math.min(...METRO.map(m => Math.hypot(m.x-shop.x, m.z-shop.z)));
+  const G = calcG_advanced(d_m, 10, 9, 1.0, 8.5);
+  // 经济：路过人流（核心 500m 日均估算 8.5 万，铺位前路过取 ~1.8% = 1500）
+  const F_pass = 1500;
+  const Eday  = calcE_basic(85000, DATA.per_capita_monthly_consume, DATA.propensity_pi, DATA.match_M);
+  // 消费者：咖啡漏斗
+  const dailyRev = calcRev_basic(F_pass, 0.12, 0.70, 1.2, 35);
+  const K = calcK_basic(DATA.saturation, DATA.complement_count, DATA.same_cat_count, DATA.anchor_w);
+  const X = calcX_basic(DATA.pol, DATA.risk, DATA.media, DATA.sent);
+  const C_score = Math.min(10, dailyRev/600);   // 单店转化能力归一
+  const Kn = Math.min(10, (K-0.5)/(1.5-0.5)*10);
+  const Xn = Math.min(10, (X-0.85)/(1.20-0.85)*10);
+  const En = Math.min(10, Eday/600 * 10);
+  const score = 0.25*G + 0.20*En + 0.20*C_score + 0.20*Kn + 0.15*Xn;
+  const yearRev = dailyRev * K * X * 365 / 10000;  // 万元
+  return { G, En, C_score, Kn, Xn, score, dailyRev, yearRev, K, X, d_m, Eday };
+}
+
+// ---------- Three.js 场景 ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.Fog(0xeef2f7, 800, 1600);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 1, 4000);
+camera.position.set(420, 380, 520);
+camera.lookAt(0,0,0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.minDistance = 220;
+controls.maxDistance = 900;
+controls.maxPolarAngle = Math.PI*0.46;
+controls.target.set(0, 30, 0);
+
+// 灯光：柔和环境 + 主光
+const hemi = new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.85);
+scene.add(hemi);
+const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+dir.position.set(220, 380, 180);
+dir.castShadow = true;
+dir.shadow.mapSize.set(2048, 2048);
+const sd = 600;
+dir.shadow.camera.left=-sd; dir.shadow.camera.right=sd; dir.shadow.camera.top=sd; dir.shadow.camera.bottom=-sd;
+dir.shadow.camera.near = 1; dir.shadow.camera.far = 1200;
+dir.shadow.bias = -0.0002;
+scene.add(dir);
+const fill = new THREE.DirectionalLight(0xeaf2ff, 0.35);
+fill.position.set(-300, 200, -200);
+scene.add(fill);
+
+// 地面（铂金白）
+const groundGeo = new THREE.PlaneGeometry(2000, 2000);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0xe9edf2, roughness: 0.85, metalness: 0.05 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 网格淡纹
+const grid = new THREE.GridHelper(1400, 28, 0xcfd5dd, 0xdde2e9);
+grid.position.y = 0.02;
+grid.material.transparent = true;
+grid.material.opacity = 0.35;
+scene.add(grid);
+
+// 街道（交子大道 + 锦悦西路十字）
+function addRoad(x, z, w, l, rot=0){
+  const g = new THREE.PlaneGeometry(w, l);
+  const m = new THREE.MeshStandardMaterial({ color: 0xd8dfe7, roughness: 0.92 });
+  const r = new THREE.Mesh(g, m);
+  r.rotation.x = -Math.PI/2;
+  r.rotation.z = rot;
+  r.position.set(x, 0.05, z);
+  r.receiveShadow = true;
+  scene.add(r);
+  // 中线
+  const line = new THREE.PlaneGeometry(w-2, 0.5);
+  const lm = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const lmesh = new THREE.Mesh(line, lm);
+  lmesh.rotation.x = -Math.PI/2;
+  lmesh.rotation.z = rot;
+  lmesh.position.set(x, 0.06, z);
+  scene.add(lmesh);
+}
+addRoad(0, 0, 1200, 28, Math.PI/2);   // 交子大道（东西向 → 沿 x）
+addRoad(0, 0, 1200, 28, 0);           // 南北向
+
+// 建筑材质
+function makeBuildingMat(color, isAnchor=false, isCandidate=false){
+  if (isCandidate){
+    return new THREE.MeshPhysicalMaterial({
+      color: 0x4a90e2, roughness: 0.2, metalness: 0.1,
+      emissive: 0x4a90e2, emissiveIntensity: 0.35,
+      transmission: 0.0, transparent: false
+    });
+  }
+  return new THREE.MeshPhysicalMaterial({
+    color: color, roughness: 0.35, metalness: 0.15,
+    clearcoat: 0.6, clearcoatRoughness: 0.3,
+    transmission: 0.05, ior: 1.4,
+  });
+}
+
+const meshMap = new Map();
+BUILDINGS.forEach(b => {
+  const g = new THREE.BoxGeometry(b.w, b.h, b.d);
+  const m = makeBuildingMat(b.color, b.anchor, b.candidate);
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set(b.x, b.h/2, b.z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData = b;
+  scene.add(mesh);
+  meshMap.set(b.id, mesh);
+
+  // 顶部装饰
+  if (b.anchor && !b.candidate){
+    const tg = new THREE.BoxGeometry(b.w*0.5, 8, b.d*0.5);
+    const tm = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4, metalness: 0.7 });
+    const tt = new THREE.Mesh(tg, tm);
+    tt.position.set(b.x, b.h+4, b.z);
+    tt.castShadow = true;
+    scene.add(tt);
+  }
+  if (b.cat === 'build'){
+    // 在建：半透明
+    m.transparent = true; m.opacity = 0.6;
+    m.color = new THREE.Color(0xe2e6ec);
+  }
+});
+
+// 地铁站光圈（200m 半衰区可视化）
+function addMetroHalo(m){
+  const grp = new THREE.Group();
+  // 圆盘
+  const disc = new THREE.Mesh(
+    new THREE.CircleGeometry(8, 32),
+    new THREE.MeshStandardMaterial({ color: 0x34c759, emissive: 0x34c759, emissiveIntensity: 0.6 })
+  );
+  disc.rotation.x = -Math.PI/2;
+  disc.position.set(m.x, 0.5, m.z);
+  grp.add(disc);
+  // 多层光圈（200m 半衰）
+  [60, 120, 200, 320].forEach((r, i)=>{
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(r-1.5, r+1.5, 64),
+      new THREE.MeshBasicMaterial({ color: 0x34c759, transparent: true, opacity: 0.28 - i*0.06, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI/2;
+    ring.position.set(m.x, 0.35, m.z);
+    grp.add(ring);
+    ring.userData.baseR = r;
+    ring.userData.phase = i*0.7;
+  });
+  scene.add(grp);
+  return grp;
+}
+const metroGroups = METRO.map(addMetroHalo);
+
+// 候选铺位地标柱
+const shop = BUILDINGS.find(b => b.candidate);
+const beamGeo = new THREE.CylinderGeometry(1.0, 1.0, 200, 16, 1, true);
+const beamMat = new THREE.MeshBasicMaterial({ color: 0x4a90e2, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
+const beam = new THREE.Mesh(beamGeo, beamMat);
+beam.position.set(shop.x, 100, shop.z);
+scene.add(beam);
+
+// 街道客流粒子（套餐 A：稳定密度）
+const PARTICLE_COUNT = 280;
+const partGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(PARTICLE_COUNT*3);
+const speeds = new Float32Array(PARTICLE_COUNT);
+const axes = new Uint8Array(PARTICLE_COUNT);   // 0 横, 1 纵
+for (let i=0;i<PARTICLE_COUNT;i++){
+  const axis = Math.random()>0.5 ? 0 : 1;
+  axes[i] = axis;
+  if (axis===0){ positions[i*3]   = (Math.random()-0.5)*1000;
+                 positions[i*3+1] = 1.2;
+                 positions[i*3+2] = (Math.random()<0.5? -1: 1) * (4 + Math.random()*8); }
+  else        { positions[i*3]   = (Math.random()<0.5? -1: 1) * (4 + Math.random()*8);
+                 positions[i*3+1] = 1.2;
+                 positions[i*3+2] = (Math.random()-0.5)*1000; }
+  speeds[i] = 0.4 + Math.random()*0.9;
+}
+partGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+const partMat = new THREE.PointsMaterial({
+  color: 0x4a90e2, size: 2.4, sizeAttenuation: true, transparent: true, opacity: 0.75
+});
+const particles = new THREE.Points(partGeo, partMat);
+scene.add(particles);
+
+// ---------- 交互：射线选择 ----------
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hovered = null;
+let highlightMat = null;
+
+function setHover(b){
+  if (hovered && hovered.userData.id !== (b && b.userData.id)){
+    hovered.material.emissive = new THREE.Color(0x000000);
+    hovered.material.emissiveIntensity = 0;
+  }
+  if (b && !b.userData.candidate){
+    b.material.emissive = new THREE.Color(0xa9c2ff);
+    b.material.emissiveIntensity = 0.18;
+    hovered = b;
+  } else { hovered = null; }
+}
+
+function onMove(e){
+  mouse.x = (e.clientX/window.innerWidth)*2 - 1;
+  mouse.y = -(e.clientY/window.innerHeight)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects([...meshMap.values()]);
+  setHover(hits.length ? hits[0].object : null);
+}
+function onClick(e){
+  mouse.x = (e.clientX/window.innerWidth)*2 - 1;
+  mouse.y = -(e.clientY/window.innerHeight)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects([...meshMap.values()]);
+  if (hits.length){ showInfo(hits[0].object.userData); }
+  else { hideInfo(); }
+}
+window.addEventListener('mousemove', onMove);
+window.addEventListener('click', onClick);
+
+function showInfo(b){
+  document.getElementById('icTtl').innerHTML = `${b.name} <span class="tag">${labelOf(b.cat)}</span>`;
+  // 把候选铺位临时移到这栋楼前，重算
+  if (!b.candidate){
+    const fakeShop = { x: b.x, z: b.z + b.d/2 + 8 };
+    const r = computeFiveD(fakeShop);
+    document.getElementById('icDesc').textContent = `若在此楼临街开 200㎡ 咖啡店 · 距最近地铁口 ${r.d_m.toFixed(0)}m`;
+    document.getElementById('icG').textContent = r.G.toFixed(1);
+    document.getElementById('icE').textContent = r.Eday.toFixed(0);
+    document.getElementById('icRev').textContent = '¥' + Math.round(r.dailyRev) + '/天';
+    document.getElementById('icK').textContent = '×' + r.K.toFixed(2);
+  } else {
+    const r = computeFiveD(b);
+    document.getElementById('icDesc').textContent = `200㎡ 咖啡铺位 · 距金融城站 ${r.d_m.toFixed(0)}m`;
+    document.getElementById('icG').textContent = r.G.toFixed(1);
+    document.getElementById('icE').textContent = r.Eday.toFixed(0);
+    document.getElementById('icRev').textContent = '¥' + Math.round(r.dailyRev) + '/天';
+    document.getElementById('icK').textContent = '×' + r.K.toFixed(2);
+  }
+  document.getElementById('info-card').classList.add('show');
+}
+function hideInfo(){ document.getElementById('info-card').classList.remove('show'); }
+function labelOf(c){
+  return ({office:'写字楼', mall:'购物中心', res:'住宅', shop:'候选铺位', build:'在建'})[c] || c;
+}
+
+// ---------- 顶部 KPI & 雷达 ----------
+const result = computeFiveD(shop);
+document.getElementById('kpiScore').innerHTML = result.score.toFixed(1) + '<span class="unit">/10</span>';
+document.getElementById('kpiRev').innerHTML = Math.round(result.yearRev) + '<span class="unit">万</span>';
+
+function drawRadar(values){
+  const cv = document.getElementById('radarCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cx = cv.width/2, cy = cv.height/2 + 10, R = 150;
+  const labels = ['地理 G','经济 E','消费者 C','竞争 K','外部 X'];
+  const N = labels.length;
+  // 多边形网格
+  for (let g=1; g<=5; g++){
+    ctx.beginPath();
+    for (let i=0;i<N;i++){
+      const a = -Math.PI/2 + i*2*Math.PI/N;
+      const r = R*g/5;
+      const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(120,130,145,'+(0.10+g*0.03)+')';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  // 轴
+  for (let i=0;i<N;i++){
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a)*R, cy + Math.sin(a)*R);
+    ctx.strokeStyle = 'rgba(120,130,145,0.18)';
+    ctx.stroke();
+  }
+  // 数据多边形
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  const grad = ctx.createRadialGradient(cx,cy,0, cx,cy,R);
+  grad.addColorStop(0, 'rgba(74,144,226,0.50)');
+  grad.addColorStop(1, 'rgba(74,144,226,0.18)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = '#4a90e2';
+  ctx.lineWidth = 2.2;
+  ctx.stroke();
+  // 顶点
+  values.forEach((v,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const r = R*v/10;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    ctx.beginPath(); ctx.arc(x,y,3.4,0,2*Math.PI);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2; ctx.stroke();
+  });
+  // 标签
+  ctx.font = '600 22px -apple-system, "PingFang SC"';
+  ctx.fillStyle = '#1d1d1f';
+  ctx.textAlign = 'center';
+  labels.forEach((lab,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/N;
+    const x = cx + Math.cos(a)*(R+30);
+    const y = cy + Math.sin(a)*(R+30) + 8;
+    ctx.fillText(lab, x, y);
+    // 数值
+    ctx.font = '500 18px -apple-system';
+    ctx.fillStyle = '#86868b';
+    ctx.fillText(values[i].toFixed(1), x, y+22);
+    ctx.font = '600 22px -apple-system, "PingFang SC"';
+    ctx.fillStyle = '#1d1d1f';
+  });
+}
+drawRadar([result.G, result.En, result.C_score, result.Kn, result.Xn]);
+
+// ---------- 动画循环 ----------
+let t = 0;
+function animate(){
+  t += 0.016;
+  // 粒子流动
+  const pos = particles.geometry.attributes.position.array;
+  for (let i=0;i<PARTICLE_COUNT;i++){
+    if (axes[i]===0){
+      pos[i*3] += speeds[i];
+      if (pos[i*3] > 500) pos[i*3] = -500;
+    } else {
+      pos[i*3+2] += speeds[i];
+      if (pos[i*3+2] > 500) pos[i*3+2] = -500;
+    }
+  }
+  particles.geometry.attributes.position.needsUpdate = true;
+  // 地铁光圈呼吸
+  metroGroups.forEach((grp, idx)=>{
+    grp.children.forEach(ch => {
+      if (ch.userData.baseR){
+        const k = 1 + 0.04*Math.sin(t*1.4 + ch.userData.phase + idx);
+        ch.scale.set(k, k, k);
+      }
+    });
+  });
+  // 候选光柱呼吸
+  beam.material.opacity = 0.14 + 0.08*Math.sin(t*2);
+
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

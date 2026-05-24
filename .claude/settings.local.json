@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open \"/Users/a58/Desktop/Claude本地/商场沙盘demo/A_演示型沙盘.html\" \"/Users/a58/Desktop/Claude本地/商场沙盘demo/B_商业落地型沙盘.html\" \"/Users/a58/Desktop/Claude本地/商场沙盘demo/C_决策型沙盘.html\")",
+      "Bash(open \"/Users/a58/Desktop/Claude本地/商场沙盘demo/C_决策型沙盘.html\")"
+    ]
+  }
+}
