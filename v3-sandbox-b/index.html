@@ -946,11 +946,33 @@ function addPlaceholder(sel, text){
 // ============ 顶部控件 ============
 const spotSelect = document.getElementById('spotSelect');
 addPlaceholder(spotSelect, '请选择候选铺位...');
+// 按区域分组（基于 address 关键词）
+function spotZoneOf(sp){
+  const a = sp.address || '';
+  if (a.includes('IFC') || a.includes('天府国际金融中心')) return '🏛 IFC 区';
+  if (a.includes('双子塔') || a.includes('金融城路')) return '🏙 双子塔区';
+  if (a.includes('in99') || a.includes('银泰')) return '🛍 in99 区';
+  if (a.includes('交子') || a.includes('华商金融') || a.includes('AFC') || a.includes('东方希望')) return '🏢 交子区';
+  return '🏡 住宅 / 配套';
+}
+const zoneOrder = ['🏛 IFC 区', '🏙 双子塔区', '🛍 in99 区', '🏢 交子区', '🏡 住宅 / 配套'];
+const grouped = {};
 SPOTS.forEach(sp => {
-  const o = document.createElement('option');
-  o.value = sp.id;
-  o.textContent = `${sp.id} · ${sp.name} (${sp.area}㎡)`;
-  spotSelect.appendChild(o);
+  const z = spotZoneOf(sp);
+  (grouped[z] = grouped[z] || []).push(sp);
+});
+zoneOrder.forEach(z => {
+  const list = grouped[z];
+  if (!list || !list.length) return;
+  const og = document.createElement('optgroup');
+  og.label = `${z} (${list.length})`;
+  list.forEach(sp => {
+    const o = document.createElement('option');
+    o.value = sp.id;
+    o.textContent = `${sp.id} · ${sp.name} (${sp.area}㎡)`;
+    og.appendChild(o);
+  });
+  spotSelect.appendChild(og);
 });
 spotSelect.addEventListener('change', () => {
   state.spotId = spotSelect.value || null;
@@ -2580,8 +2602,21 @@ function closeLevel2(){
 document.getElementById('l2Back').addEventListener('click', closeLevel2);
 document.getElementById('l2Close').addEventListener('click', closeLevel2);
 window.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('level2').classList.contains('show')){
-    closeLevel2();
+  const open = document.getElementById('level2').classList.contains('show');
+  if (!open) return;
+  // ESC 关
+  if (e.key === 'Escape'){ closeLevel2(); return; }
+  // 在 input/select 上不响应方向键
+  if (e.target.matches('input, select, textarea')) return;
+  // ↑↓ 切楼层（↑ = 高一层，idx+1）
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){
+    e.preventDefault();
+    if (!L2.interior) return;
+    const total = L2.interior.floors.length;
+    const delta = e.key === 'ArrowUp' ? 1 : -1;
+    L2.curFloorIdx = Math.max(0, Math.min(total-1, L2.curFloorIdx + delta));
+    L2.selectedUnit = null;
+    renderLevel2();
   }
 });
 
