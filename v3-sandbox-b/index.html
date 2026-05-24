@@ -1017,89 +1017,6 @@ catL2Sel.addEventListener('change', () => {
   refreshAll();
 });
 
-// ============ 重置视角按钮 + 双击空地 ============
-document.getElementById('viewResetBtn').addEventListener('click', camResetToDefault);
-renderer.domElement.addEventListener('dblclick', e => {
-  // 双击空地 = 重置视角；双击建筑 = 触发寻路（已有逻辑），所以这里只在没命中建筑时响应
-  const rect = renderer.domElement.getBoundingClientRect();
-  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
-  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(pickables());
-  if (!hits.length) camResetToDefault();
-});
-
-// ============ 快照对比（最多 3 个） ============
-const snaps = [];
-const MAX_SNAPS = 3;
-function takeSnapshot(){
-  if (!state.cat || !state.spotId){ alert('请先选业态和铺位'); return; }
-  if (snaps.length >= MAX_SNAPS){ alert('最多对比 ' + MAX_SNAPS + ' 个，请先移除一个'); return; }
-  if (snaps.some(s => s.spotId === state.spotId && s.cat === state.cat)){ alert('已收藏过这个组合'); return; }
-  const sp = SPOTS.find(s => s.id === state.spotId);
-  const cat = CATEGORIES[state.cat];
-  const ev = evaluateSpot(sp, state.cat);
-  const seasonM = cat.season[state.month-1];
-  const periodMul = PERIODS[state.period].mul;
-  const yearRev = ev.yearRev * (1 + seasonM) * (1 + (periodMul-1)*0.3);
-  const yearProfit = yearRev * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
-  const roi = yearProfit / ev.invest;
-  const payback = ev.invest / Math.max(0.1, yearProfit);
-  snaps.push({
-    spotId: state.spotId, cat: state.cat, period: state.period, month: state.month,
-    spotName: sp.name, catLabel: cat.label, catIcon: cat.icon,
-    score: ev.score, yearRev, roi, payback,
-  });
-  renderSnaps();
-}
-function removeSnap(i){ snaps.splice(i, 1); renderSnaps(); }
-function applySnap(s){
-  // 一键还原
-  catL1Sel.value = CATEGORIES[s.cat].L1;
-  populateL2(catL1Sel.value);     // 会清 state.cat
-  catL2Sel.value = s.cat;
-  state.cat = s.cat;
-  spotSelect.value = s.spotId;
-  state.spotId = s.spotId;
-  state.period = s.period;
-  state.month = s.month;
-  document.querySelectorAll('#periodCtrl .p').forEach(p =>
-    p.classList.toggle('active', p.dataset.period === s.period));
-  document.getElementById('monthSlider').value = s.month;
-  document.getElementById('monthTxt').textContent = MONTH_NAMES[s.month-1];
-  updateMonthBg();
-  rebuildParticles(PERIODS[state.period].particles);
-  rebuildSpotMarker();
-  rebuildCompPoints();
-  refreshAll();
-}
-function renderSnaps(){
-  const bar = document.getElementById('snapBar');
-  const list = document.getElementById('snapList');
-  list.innerHTML = '';
-  if (snaps.length === 0){ bar.classList.remove('show'); return; }
-  bar.classList.add('show');
-  snaps.forEach((s, i) => {
-    const card = document.createElement('div');
-    card.className = 'snap-card';
-    card.innerHTML = `
-      <button class="rm" data-i="${i}" title="移除">×</button>
-      <div class="name">${s.spotName}</div>
-      <div class="meta">${s.catIcon} ${s.catLabel}</div>
-      <div class="row"><span class="k">评分</span><span class="v">${s.score.toFixed(1)}</span></div>
-      <div class="row"><span class="k">年营收</span><span class="v">${Math.round(s.yearRev)} 万</span></div>
-      <div class="row"><span class="k">ROI</span><span class="v" style="color:${s.roi>0.30?'var(--green)':s.roi>0?'var(--ink-1)':'var(--red)'}">${(s.roi*100).toFixed(0)}%</span></div>
-      <div class="row"><span class="k">回收</span><span class="v">${s.payback.toFixed(1)} 年</span></div>
-    `;
-    card.addEventListener('click', e => {
-      if (e.target.matches('.rm')){ removeSnap(+e.target.dataset.i); return; }
-      applySnap(s);
-    });
-    list.appendChild(card);
-  });
-}
-document.getElementById('snapBtn').addEventListener('click', takeSnapshot);
-
 document.querySelectorAll('#periodCtrl .p').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#periodCtrl .p').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
@@ -2168,6 +2085,83 @@ renderer.domElement.addEventListener('click', e => {
 
 // ESC 关闭 popup
 window.addEventListener('keydown', e => { if (e.key === 'Escape') hidePopup(); });
+
+// ============ 重置视角按钮 + 双击空地 ============
+document.getElementById('viewResetBtn').addEventListener('click', camResetToDefault);
+renderer.domElement.addEventListener('dblclick', e => {
+  // 双击空地 = 重置视角；命中建筑则忽略（建筑有 click 触发寻路）
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(pickables());
+  if (!hits.length) camResetToDefault();
+});
+
+// ============ 快照对比（最多 3 个） ============
+const snaps = [];
+const MAX_SNAPS = 3;
+function takeSnapshot(){
+  if (!state.cat || !state.spotId){ alert('请先选业态和铺位'); return; }
+  if (snaps.length >= MAX_SNAPS){ alert('最多对比 ' + MAX_SNAPS + ' 个，请先移除一个'); return; }
+  if (snaps.some(s => s.spotId === state.spotId && s.cat === state.cat)){ alert('已收藏过这个组合'); return; }
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  const ev = evaluateSpot(sp, state.cat);
+  const seasonM = cat.season[state.month-1];
+  const periodMul = PERIODS[state.period].mul;
+  const yearRev = ev.yearRev * (1 + seasonM) * (1 + (periodMul-1)*0.3);
+  const yearProfit = yearRev * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
+  const roi = yearProfit / ev.invest;
+  const payback = ev.invest / Math.max(0.1, yearProfit);
+  snaps.push({
+    spotId: state.spotId, cat: state.cat, period: state.period, month: state.month,
+    spotName: sp.name, catLabel: cat.label, catIcon: cat.icon,
+    score: ev.score, yearRev, roi, payback,
+  });
+  renderSnaps();
+}
+function removeSnap(i){ snaps.splice(i, 1); renderSnaps(); }
+function applySnap(s){
+  catL1Sel.value = CATEGORIES[s.cat].L1;
+  populateL2(catL1Sel.value);
+  catL2Sel.value = s.cat;  state.cat = s.cat;
+  spotSelect.value = s.spotId; state.spotId = s.spotId;
+  state.period = s.period;  state.month = s.month;
+  document.querySelectorAll('#periodCtrl .p').forEach(p =>
+    p.classList.toggle('active', p.dataset.period === s.period));
+  document.getElementById('monthSlider').value = s.month;
+  document.getElementById('monthTxt').textContent = MONTH_NAMES[s.month-1];
+  updateMonthBg();
+  rebuildParticles(PERIODS[state.period].particles);
+  rebuildSpotMarker(); rebuildCompPoints(); refreshAll();
+}
+function renderSnaps(){
+  const bar = document.getElementById('snapBar');
+  const list = document.getElementById('snapList');
+  list.innerHTML = '';
+  if (snaps.length === 0){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  snaps.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'snap-card';
+    card.innerHTML = `
+      <button class="rm" data-i="${i}" title="移除">×</button>
+      <div class="name">${s.spotName}</div>
+      <div class="meta">${s.catIcon} ${s.catLabel}</div>
+      <div class="row"><span class="k">评分</span><span class="v">${s.score.toFixed(1)}</span></div>
+      <div class="row"><span class="k">年营收</span><span class="v">${Math.round(s.yearRev)} 万</span></div>
+      <div class="row"><span class="k">ROI</span><span class="v" style="color:${s.roi>0.30?'var(--green)':s.roi>0?'var(--ink-1)':'var(--red)'}">${(s.roi*100).toFixed(0)}%</span></div>
+      <div class="row"><span class="k">回收</span><span class="v">${s.payback.toFixed(1)} 年</span></div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.matches('.rm')){ removeSnap(+e.target.dataset.i); return; }
+      applySnap(s);
+    });
+    list.appendChild(card);
+  });
+}
+document.getElementById('snapBtn').addEventListener('click', takeSnapshot);
 
 // ============ 给地铁圆盘挂 userData（用于点击拾取） ============
 metroGroups.forEach((g, i) => {
