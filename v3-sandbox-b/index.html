@@ -1738,7 +1738,11 @@ function camStartOverhead(){
     camState.savedOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
   }
   camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
-  camState.toOffset = new THREE.Vector3(0, OVERHEAD_HEIGHT, OVERHEAD_TILT_Z);
+  // 俯视方向不变（向上+一点 z 偏移避免奇异），但"距离"用用户当前的距离
+  // → 走路期间画面里物体的"大小"保持不变（俯视只是把镜头转上去，不拉远/拉近）
+  const dist = Math.max(80, camState.savedOffset.length());   // 至少 80m，太近会糊
+  const dir = new THREE.Vector3(0, OVERHEAD_HEIGHT, OVERHEAD_TILT_Z).normalize();
+  camState.toOffset = dir.multiplyScalar(dist);
   camState.mode = 'toOverhead';
   camState.tweenDur = TWEEN_DUR_UP;
   camState.tweenT0 = performance.now();
