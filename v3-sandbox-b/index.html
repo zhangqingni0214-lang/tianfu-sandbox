@@ -88,37 +88,6 @@
   }
   .spot-sel:hover { background: white; }
 
-  /* 步骤箭头 + 分隔符 */
-  .step-arrow {
-    font-size: 14px; color: var(--ink-3); font-weight: 600;
-    user-select: none;
-  }
-  .step-divider {
-    width: 1px; height: 22px; background: rgba(0,0,0,0.08);
-    margin: 0 2px;
-  }
-  /* 步骤组在没选时的视觉提示 */
-  .group.step { transition: background 0.2s; }
-  /* 步骤序号小徽章 */
-  .step-num {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-    color: white; font-size: 9px; font-weight: 700;
-    display: inline-flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-
-  /* 顶栏右侧小按钮（单字符紧凑） */
-  .topbar-btn {
-    width: 28px; height: 28px; padding: 0; font-size: 14px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.04); border: none;
-    color: var(--ink-2); cursor: pointer; font-weight: 600;
-    transition: all 0.15s; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-  }
-  .topbar-btn:hover { background: rgba(0,0,0,0.10); color: var(--ink-1); }
-
   /* 月份滑块（迷你版，嵌在命令栏） */
   .month-mini { display: flex; align-items: center; gap: 8px; }
   .month-mini input[type="range"] {
@@ -443,136 +412,6 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .walking-bar .walking-cancel {
-    margin-left: 8px; padding: 0; width: 18px; height: 18px;
-    border: none; border-radius: 50%;
-    background: rgba(255,255,255,0.22); color: white;
-    cursor: pointer; font-size: 14px; line-height: 14px;
-    display: inline-flex; align-items: center; justify-content: center;
-  }
-  .walking-bar .walking-cancel:hover { background: rgba(255,255,255,0.40); }
-
-  /* KPI 数值变化高亮 */
-  @keyframes flashUp   { 0%{background:rgba(52,199,89,0); } 30%{background:rgba(52,199,89,0.35); } 100%{background:rgba(52,199,89,0); } }
-  @keyframes flashDown { 0%{background:rgba(255,59,48,0); } 30%{background:rgba(255,59,48,0.30); } 100%{background:rgba(255,59,48,0); } }
-  .flash-up   { animation: flashUp 1.4s ease-out; border-radius:6px; }
-  .flash-down { animation: flashDown 1.4s ease-out; border-radius:6px; }
-
-  /* 首次教程 overlay */
-  .tutorial-mask {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(20,30,50,0.55);
-    backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-  .tutorial-mask.show { opacity: 1; pointer-events: auto; }
-  .tutorial-card {
-    background: white; border-radius: 18px; max-width: 480px; width: 88vw;
-    padding: 32px 32px 22px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.32);
-    transform: translateY(20px) scale(0.96);
-    transition: transform 0.32s cubic-bezier(.22,.8,.36,1);
-  }
-  .tutorial-mask.show .tutorial-card { transform: translateY(0) scale(1); }
-  .tutorial-card .emoji { font-size: 44px; text-align: center; margin-bottom: 12px; }
-  .tutorial-card h2 { font-size: 18px; font-weight: 700; text-align: center; }
-  .tutorial-card .desc { font-size: 13px; color: var(--ink-2); text-align: center; margin-top: 10px; line-height: 1.6; }
-  .tutorial-card .steps {
-    margin-top: 22px; display: flex; flex-direction: column; gap: 10px;
-  }
-  .tutorial-card .steps .s {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px; background: rgba(245,247,250,0.7); border-radius: 12px;
-    font-size: 12px; color: var(--ink-2);
-  }
-  .tutorial-card .steps .s .n {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--ink-1); color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; flex-shrink: 0;
-  }
-  .tutorial-card .steps .s b { color: var(--ink-1); font-weight: 600; }
-  .tutorial-card .pager {
-    display: flex; justify-content: center; gap: 6px; margin-top: 18px;
-  }
-  .tutorial-card .pager .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(0,0,0,0.10);
-    transition: all 0.2s;
-  }
-  .tutorial-card .pager .dot.active { background: var(--ink-1); width: 18px; border-radius: 4px; }
-  .tutorial-card .actions {
-    margin-top: 20px; display: flex; gap: 8px; justify-content: space-between;
-  }
-  .tutorial-card .actions button {
-    padding: 9px 18px; font-size: 12px; font-weight: 500;
-    border: none; border-radius: 10px; cursor: pointer;
-  }
-  .tutorial-card .actions .skip { background: transparent; color: var(--ink-3); }
-  .tutorial-card .actions .next { background: var(--ink-1); color: white; }
-  .tutorial-card .actions .next:hover { background: #000; }
-
-  /* 快照对比 */
-  .snap-btn {
-    position: absolute; top: 12px; right: 14px;
-    width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,0.16); color: white; border: none;
-    cursor: pointer; font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.18s;
-  }
-  .snap-btn:hover { background: rgba(255,255,255,0.30); transform: scale(1.08); }
-  .snap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .snap-bar {
-    position: fixed; bottom: 18px; left: 50%; transform: translate(-50%, 30px);
-    z-index: 50; opacity: 0; pointer-events: none;
-    transition: all 0.32s cubic-bezier(.22,.8,.36,1);
-    background: rgba(255,255,255,0.92); backdrop-filter: blur(28px);
-    border: 1px solid rgba(255,255,255,0.6); border-radius: 16px;
-    box-shadow: 0 12px 36px rgba(60,80,110,0.16);
-    padding: 12px; display: flex; gap: 10px; align-items: center;
-    max-width: calc(100vw - 480px);
-  }
-  .snap-bar.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-  .snap-card {
-    background: rgba(245,247,250,0.85); border-radius: 12px;
-    padding: 10px 12px; min-width: 180px;
-    position: relative; cursor: pointer;
-    transition: all 0.18s;
-  }
-  .snap-card:hover { background: white; }
-  .snap-card .name { font-size: 11px; font-weight: 600; padding-right: 22px; }
-  .snap-card .meta { font-size: 9px; color: var(--ink-3); margin-top: 1px; }
-  .snap-card .row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; }
-  .snap-card .row .k { color: var(--ink-3); }
-  .snap-card .row .v { font-weight: 700; font-family: 'SF Mono', monospace; }
-  .snap-card .rm {
-    position: absolute; top: 6px; right: 8px;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: rgba(0,0,0,0.06); border: none; cursor: pointer;
-    font-size: 11px; line-height: 11px; color: var(--ink-3);
-  }
-  .snap-card .rm:hover { background: rgba(255,59,48,0.20); color: var(--red); }
-  .snap-bar .snap-hint {
-    font-size: 11px; color: var(--ink-3); padding: 0 8px;
-  }
-
-  /* 重置视角按钮 */
-  .view-reset-btn {
-    position: absolute; bottom: 64px; left: 22px;
-    padding: 8px 14px; border-radius: 12px;
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
-    border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
-    font-size: 11px; font-weight: 500; color: var(--ink-2);
-    box-shadow: 0 4px 14px rgba(60,80,110,0.08);
-    transition: all 0.18s;
-  }
-  .view-reset-btn:hover {
-    background: white; color: var(--ink-1); transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(60,80,110,0.12);
-  }
 
   /* 鼠标在场景上时变指针 */
   #scene canvas { cursor: pointer; }
@@ -775,24 +614,18 @@
 
   <div class="spacer"></div>
 
+  <!-- 铺位选择 -->
+  <div class="group">
+    <span class="glab">铺位</span>
+    <select class="spot-sel" id="spotSelect" style="max-width:240px;"></select>
+  </div>
+
   <!-- 业态 L1 + L2 -->
-  <div class="group step">
-    <span class="step-num">1</span>
+  <div class="group">
     <span class="glab">业态</span>
     <select class="spot-sel" id="catL1" style="max-width:96px;"></select>
-    <select class="spot-sel" id="catL2" style="max-width:128px;"></select>
+    <select class="spot-sel" id="catL2" style="max-width:140px;"></select>
   </div>
-
-  <span class="step-arrow">›</span>
-
-  <!-- 铺位选择 -->
-  <div class="group step">
-    <span class="step-num">2</span>
-    <span class="glab">铺位</span>
-    <select class="spot-sel" id="spotSelect" style="max-width:220px;"></select>
-  </div>
-
-  <span class="step-divider"></span>
 
   <!-- 时段 -->
   <div class="group">
@@ -813,10 +646,6 @@
       <span class="mtxt" id="monthTxt">5月</span>
     </div>
   </div>
-
-  <!-- 顶栏右上 -->
-  <button class="topbar-btn" id="resetSelBtn" title="清空选择 (Space)">⟲</button>
-  <button class="topbar-btn" id="aboutBtn" title="关于">?</button>
 </div>
 
 <!-- 主舞台 -->
@@ -844,32 +673,6 @@
   <div class="walking-bar" id="walkingBar">
     <span class="spinner"></span>
     <span id="walkingText">小人正在前往...</span>
-    <button class="walking-cancel" id="walkingCancel" title="取消寻路 (ESC)">×</button>
-  </div>
-
-  <!-- 沙盘左下：回到默认视角 -->
-  <button class="view-reset-btn" id="viewResetBtn" title="重置视角 (R)">⟲ 默认视角</button>
-
-  <!-- 首次教程 overlay -->
-  <div class="tutorial-mask" id="tutorialMask">
-    <div class="tutorial-card">
-      <div class="emoji">👋</div>
-      <h2>欢迎来到天府金融城商业沙盘</h2>
-      <div class="desc">3 步开始你的选址评估</div>
-      <div class="steps">
-        <div class="s"><span class="n">1</span><span>顶栏 <b>① 业态</b> 选大类（餐饮/零售/服务/娱乐）和细分</span></div>
-        <div class="s"><span class="n">2</span><span>顶栏 <b>② 铺位</b> 选一个候选铺位（30 选 1）</span></div>
-        <div class="s"><span class="n">3</span><span>右侧仪表盘即时显示 <b>评分 · 营收 · ROI · 风险</b></span></div>
-      </div>
-      <div class="desc" style="margin-top:14px;font-size:11px;color:var(--ink-3)">
-        💡 沙盘可以拖动旋转 / 滚轮缩放 / 双击空地回到默认视角<br>
-        点击建筑会让 <b>白色小人走过去</b> 并展开建筑详情
-      </div>
-      <div class="actions">
-        <button class="skip" id="tutSkip">不再提示</button>
-        <button class="next" id="tutNext">开始探索 →</button>
-      </div>
-    </div>
   </div>
 
   <!-- 建筑详情浮层（屏幕坐标跟随建筑） -->
@@ -882,12 +685,6 @@
     <div class="b-meta" id="bMeta"></div>
     <div class="b-narr" id="bNarr"></div>
     <div class="b-action" id="bAction"></div>
-  </div>
-
-  <!-- 快照对比浮窗 -->
-  <div class="snap-bar" id="snapBar">
-    <span class="snap-hint">📌 对比</span>
-    <div id="snapList" style="display:flex;gap:10px"></div>
   </div>
 
   <!-- 二级沙盘 Overlay -->
@@ -950,7 +747,6 @@
 
   <!-- HERO -->
   <div class="hero-card">
-    <button class="snap-btn" id="snapBtn" title="收藏当前评估到快照对比">📌</button>
     <div class="htop">
       <div>
         <div class="lab">候选地块投资评估</div>
@@ -1062,22 +858,6 @@ import { evaluateSpot, cashFlow5Y, getSameCount } from './lib/calc.js';
 
 // 初始：业态和铺位都未选。用户必须主动从下拉里选才会渲染评估
 const state = { cat:null, period:'morning', month:5, spotId:null };
-
-// 从 sessionStorage 还原（如果有）
-try {
-  const saved = JSON.parse(sessionStorage.getItem('sandbox.state') || '{}');
-  if (saved.cat !== undefined) state.cat = saved.cat;
-  if (saved.period) state.period = saved.period;
-  if (saved.month) state.month = saved.month;
-  if (saved.spotId !== undefined) state.spotId = saved.spotId;
-} catch(e){}
-function persistState(){
-  try {
-    sessionStorage.setItem('sandbox.state', JSON.stringify({
-      cat: state.cat, period: state.period, month: state.month, spotId: state.spotId,
-    }));
-  } catch(e){}
-}
 const PERIODS = {
   morning: { mul:1.0,  tau:0.62, particles:340, lab:'早高峰' },
   lunch:   { mul:1.35, tau:0.78, particles:480, lab:'午高峰' },
@@ -1097,33 +877,11 @@ function addPlaceholder(sel, text){
 // ============ 顶部控件 ============
 const spotSelect = document.getElementById('spotSelect');
 addPlaceholder(spotSelect, '请选择候选铺位...');
-// 按区域分组（基于铺位 address / id 关键词）
-function spotZoneOf(sp){
-  const a = sp.address || '';
-  if (a.includes('IFC') || a.includes('天府国际金融中心')) return '🏛 IFC 区';
-  if (a.includes('双子塔') || a.includes('金融城路')) return '🏙 双子塔区';
-  if (a.includes('in99') || a.includes('银泰')) return '🛍 in99 区';
-  if (a.includes('交子') || a.includes('华商金融') || a.includes('AFC') || a.includes('东方希望')) return '🏢 交子区';
-  return '🏡 住宅 / 配套';
-}
-const grouped = {};
 SPOTS.forEach(sp => {
-  const zone = spotZoneOf(sp);
-  (grouped[zone] = grouped[zone] || []).push(sp);
-});
-// 固定顺序：IFC → 双子塔 → in99 → 交子 → 住宅配套
-const zoneOrder = ['🏛 IFC 区', '🏙 双子塔区', '🛍 in99 区', '🏢 交子区', '🏡 住宅 / 配套'];
-zoneOrder.forEach(zone => {
-  if (!grouped[zone] || !grouped[zone].length) return;
-  const og = document.createElement('optgroup');
-  og.label = `${zone} (${grouped[zone].length})`;
-  grouped[zone].forEach(sp => {
-    const o = document.createElement('option');
-    o.value = sp.id;
-    o.textContent = `${sp.id} · ${sp.name.replace(/^[^·]+·\s*/, '')} ${sp.area}㎡`;
-    og.appendChild(o);
-  });
-  spotSelect.appendChild(og);
+  const o = document.createElement('option');
+  o.value = sp.id;
+  o.textContent = `${sp.id} · ${sp.name} (${sp.area}㎡)`;
+  spotSelect.appendChild(o);
 });
 spotSelect.addEventListener('change', () => {
   state.spotId = spotSelect.value || null;
@@ -1166,132 +924,6 @@ catL2Sel.addEventListener('change', () => {
   state.cat = catL2Sel.value || null;
   rebuildCompPoints();
   refreshAll();
-});
-
-// 清空选择按钮
-document.getElementById('resetSelBtn').addEventListener('click', () => {
-  state.cat = null; state.spotId = null;
-  catL1Sel.selectedIndex = 0;
-  catL2Sel.innerHTML = '';
-  addPlaceholder(catL2Sel, '先选大类');
-  spotSelect.selectedIndex = 0;
-  rebuildSpotMarker();
-  rebuildCompPoints();
-  refreshAll();
-});
-
-// 回到默认视角
-document.getElementById('viewResetBtn').addEventListener('click', camResetToDefault);
-// 取消寻路
-document.getElementById('walkingCancel').addEventListener('click', cancelWalk);
-// 首次教程
-(function(){
-  const seen = localStorage.getItem('sandbox.tutorialSeen');
-  const mask = document.getElementById('tutorialMask');
-  if (!seen){
-    setTimeout(() => mask.classList.add('show'), 400);
-  }
-  function close(remember){
-    mask.classList.remove('show');
-    if (remember) localStorage.setItem('sandbox.tutorialSeen', '1');
-  }
-  document.getElementById('tutSkip').addEventListener('click', () => close(true));
-  document.getElementById('tutNext').addEventListener('click', () => close(true));
-  mask.addEventListener('click', e => { if (e.target === mask) close(true); });
-  // 关于按钮也复用这个教程
-  document.getElementById('aboutBtn').addEventListener('click', () => {
-    mask.classList.add('show');
-  });
-})();
-
-// ============ 快照对比 ============
-const snaps = [];
-const MAX_SNAPS = 3;
-function takeSnapshot(){
-  if (!state.cat || !state.spotId){ alert('请先选业态和铺位'); return; }
-  if (snaps.length >= MAX_SNAPS){ alert('最多对比 ' + MAX_SNAPS + ' 个，请先移除一个'); return; }
-  const sp = SPOTS.find(s => s.id === state.spotId);
-  const cat = CATEGORIES[state.cat];
-  const ev = evaluateSpot(sp, state.cat);
-  const seasonM = cat.season[state.month-1];
-  const periodMul = PERIODS[state.period].mul;
-  const yearRev = ev.yearRev * (1+seasonM) * (1 + (periodMul-1)*0.3);
-  const yearProfit = yearRev * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
-  const roi = yearProfit / ev.invest;
-  const payback = ev.invest / Math.max(0.1, yearProfit);
-  // 重复就跳过
-  if (snaps.some(s => s.spotId === state.spotId && s.cat === state.cat)){ alert('已收藏过'); return; }
-  snaps.push({
-    spotId: state.spotId, cat: state.cat, spotName: sp.name, catLabel: cat.label, catIcon: cat.icon,
-    score: ev.score, yearRev, roi, payback, period: state.period, month: state.month,
-  });
-  renderSnaps();
-}
-function removeSnap(i){ snaps.splice(i, 1); renderSnaps(); }
-function applySnap(s){
-  state.cat = s.cat; state.spotId = s.spotId; state.period = s.period; state.month = s.month;
-  // 同步 UI
-  catL1Sel.value = CATEGORIES[s.cat].L1;
-  populateL2(catL1Sel.value);
-  catL2Sel.value = s.cat; state.cat = s.cat;
-  spotSelect.value = s.spotId;
-  document.querySelectorAll('#periodCtrl .p').forEach(p => p.classList.toggle('active', p.dataset.period === s.period));
-  rebuildParticles(PERIODS[state.period].particles);
-  document.getElementById('monthSlider').value = s.month;
-  document.getElementById('monthTxt').textContent = MONTH_NAMES[s.month-1];
-  updateMonthBg();
-  rebuildSpotMarker(); rebuildCompPoints(); refreshAll();
-}
-function renderSnaps(){
-  const bar = document.getElementById('snapBar');
-  const list = document.getElementById('snapList');
-  list.innerHTML = '';
-  if (snaps.length === 0){ bar.classList.remove('show'); return; }
-  bar.classList.add('show');
-  snaps.forEach((s, i) => {
-    const card = document.createElement('div');
-    card.className = 'snap-card';
-    card.innerHTML = `
-      <button class="rm" data-i="${i}" title="移除">×</button>
-      <div class="name">${s.spotName}</div>
-      <div class="meta">${s.catIcon} ${s.catLabel}</div>
-      <div class="row"><span class="k">评分</span><span class="v">${s.score.toFixed(1)}</span></div>
-      <div class="row"><span class="k">年营收</span><span class="v">${Math.round(s.yearRev)} 万</span></div>
-      <div class="row"><span class="k">ROI</span><span class="v" style="color:${s.roi>0.3?'var(--green)':s.roi>0?'var(--ink-1)':'var(--red)'}">${(s.roi*100).toFixed(0)}%</span></div>
-      <div class="row"><span class="k">回收</span><span class="v">${s.payback.toFixed(1)} 年</span></div>
-    `;
-    card.addEventListener('click', e => {
-      if (e.target.matches('.rm')){ removeSnap(+e.target.dataset.i); return; }
-      applySnap(s);
-    });
-    list.appendChild(card);
-  });
-}
-document.getElementById('snapBtn').addEventListener('click', takeSnapshot);
-
-// KPI 数值闪烁高亮（变化时短暂闪绿/红）
-const _lastVals = new Map();
-function flashOnChange(id, newVal){
-  const old = _lastVals.get(id);
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (old !== undefined && old !== newVal){
-    el.classList.remove('flash-up', 'flash-down');
-    void el.offsetWidth;     // 强制重绘以重启动画
-    el.classList.add(newVal > old ? 'flash-up' : 'flash-down');
-  }
-  _lastVals.set(id, newVal);
-}
-
-// 双击地面回到默认视角
-renderer.domElement.addEventListener('dblclick', e => {
-  // 只有在没拾取到任何建筑时才视为"双击空地"
-  const rect = renderer.domElement.getBoundingClientRect();
-  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
-  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(pickables());
-  if (!hits.length) camResetToDefault();
 });
 
 document.querySelectorAll('#periodCtrl .p').forEach(b => b.addEventListener('click', () => {
@@ -1339,9 +971,6 @@ controls.zoomSpeed = 2.8;     // 滚轮缩放灵敏度（默认 1.0，提高约 
 controls.minDistance = 220; controls.maxDistance = 900;
 controls.maxPolarAngle = Math.PI*0.46;
 controls.target.set(0, 30, 0);
-// 记下默认视角，供"重置视角"按钮恢复
-const DEFAULT_CAM_POS = camera.position.clone();
-const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 30, 0);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.88));
 const dir = new THREE.DirectionalLight(0xffffff, 1.15);
@@ -1606,31 +1235,10 @@ const metroGroups = METRO.map(m => {
 // 候选铺位 · 地面轮廓圆盘 + 小金锥 pin（不抢高）
 let spotMarker = null, spotPin = null, spotOutline = null, spotBeam = null, spotRingPulse = null;
 
-// "未选铺位"时在 30 个候选位置上方悬浮金色↓箭头作提示
-let hintArrowGroup = new THREE.Group(); scene.add(hintArrowGroup);
-function rebuildHintArrows(){
-  while(hintArrowGroup.children.length) hintArrowGroup.remove(hintArrowGroup.children[0]);
-  if (state.spotId) return;     // 已选 → 不画
-  const arrowGeo = new THREE.ConeGeometry(2.5, 6, 12);
-  const arrowMat = new THREE.MeshStandardMaterial({
-    color: 0xd4af37, emissive: 0xd4af37, emissiveIntensity: 0.5,
-    metalness: 0.7, roughness: 0.3,
-  });
-  SPOTS.forEach((sp, i) => {
-    const arrow = new THREE.Mesh(arrowGeo, arrowMat);
-    arrow.position.set(sp.x, 18, sp.z);
-    arrow.rotation.z = Math.PI;   // 朝下
-    arrow.userData = { baseY: 18, phase: i*0.5 };
-    hintArrowGroup.add(arrow);
-  });
-}
-// 初始建一次
-rebuildHintArrows();
 function rebuildSpotMarker(){
   // 清旧
   [spotMarker, spotPin, spotOutline, spotBeam, spotRingPulse].forEach(o => o && scene.remove(o));
   spotMarker = spotPin = spotOutline = spotBeam = spotRingPulse = null;
-  rebuildHintArrows();    // 同时刷新"未选"金色提示箭头
   if (!state.spotId) return;        // 未选铺位 → 不画
   const sp = SPOTS.find(s => s.id === state.spotId);
   if (!sp) return;
@@ -2048,40 +1656,6 @@ function camStartRestore(){
   camState.mode = 'toRestore';
   camState.tweenDur = TWEEN_DUR_DOWN;
   camState.tweenT0 = performance.now();
-}
-// 用户主动："回到默认视角"
-function camResetToDefault(){
-  camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
-  camState.toOffset = DEFAULT_CAM_POS.clone().sub(DEFAULT_CAM_TARGET);
-  camState.savedOffset = camState.toOffset.clone();     // 顺便更新 saved
-  camState.mode = 'toRestore';
-  camState.tweenDur = 900;
-  camState.tweenT0 = performance.now();
-  // 同时 target 也缓动回原
-  const tgtFrom = controls.target.clone();
-  const tgtTo = DEFAULT_CAM_TARGET.clone();
-  const t0 = performance.now();
-  function tweenTgt(){
-    const t = Math.min(1, (performance.now()-t0)/900);
-    const e = t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
-    controls.target.copy(tgtFrom).lerp(tgtTo, e);
-    if (t<1) requestAnimationFrame(tweenTgt);
-  }
-  tweenTgt();
-}
-
-// 取消寻路（保留当前位置 + 视角恢复）
-function cancelWalk(){
-  if (!nav.walking) return;
-  nav.walking = false;
-  nav.path = [];
-  nav.target = null;
-  renderer.domElement.classList.remove('walking');
-  document.getElementById('walkingBar').classList.remove('show');
-  character.rotation.x = 0;
-  character.position.y = 0;
-  clearPathLine();
-  camStartRestore();
 }
 function updateCameraTween(){
   if (camState.mode !== 'toOverhead' && camState.mode !== 'toRestore') return;
@@ -2577,7 +2151,6 @@ function drawCFMini(cf, invest){
 
 // ============ 主刷新 + 决策文案 ============
 function refreshAll(){
-  persistState();
   const rail = document.getElementById('rail');
   const ready = !!(state.cat && state.spotId);
 
@@ -2629,11 +2202,6 @@ function refreshAll(){
     `${(roi*100).toFixed(0)}% <span class="${roi>0.3?'up':roi>0?'':'dn'} delta">${payback.toFixed(1)}年</span>`;
   document.getElementById('heroRent').innerHTML = rentRatio.toFixed(1)+'<span class="u">%</span>';
   document.getElementById('heroInvest').innerHTML = Math.round(ev.invest)+'<span class="u">万</span>';
-  // 变化高亮
-  flashOnChange('heroScore', +ev.score.toFixed(1));
-  flashOnChange('heroRev',   Math.round(yearRevAdj));
-  flashOnChange('heroROI',   Math.round(roi*100));
-  flashOnChange('heroRent',  +rentRatio.toFixed(1));
 
   // 雷达
   drawRadar([ev.G, ev.En, ev.Cn, ev.Kn, ev.Xn]);
@@ -3484,12 +3052,6 @@ function animate(){
       }
     });
   });
-  // "未选铺位" 金色↓箭头浮动
-  hintArrowGroup.children.forEach(a => {
-    a.position.y = a.userData.baseY + Math.sin(t*2 + a.userData.phase)*2;
-    a.rotation.y += 0.02;
-  });
-
   if (spotBeam) spotBeam.material.opacity = 0.16 + 0.10*Math.sin(t*2);
   // 候选铺位地面脉冲环
   if (spotRingPulse){
@@ -3504,80 +3066,11 @@ function animate(){
   requestAnimationFrame(animate);
 }
 
-// 启动：把还原的 state 同步到 UI 控件
-(function syncUIFromState(){
-  // 业态：先暂存 cat，populateL2 会重置 state.cat
-  const savedCat = state.cat;
-  if (savedCat && CATEGORIES[savedCat]){
-    catL1Sel.value = CATEGORIES[savedCat].L1;
-    populateL2(CATEGORIES[savedCat].L1);   // 此处 state.cat 被清成 null
-    catL2Sel.value = savedCat;
-    state.cat = savedCat;                   // 恢复
-  }
-  // 铺位
-  if (state.spotId && SPOTS.find(s => s.id === state.spotId)){
-    spotSelect.value = state.spotId;
-  } else {
-    state.spotId = null;                    // 失效的铺位 id 也清掉
-  }
-  // 时段
-  document.querySelectorAll('#periodCtrl .p').forEach(p => {
-    p.classList.toggle('active', p.dataset.period === state.period);
-  });
-  // 月份
-  document.getElementById('monthSlider').value = state.month;
-  document.getElementById('monthTxt').textContent = MONTH_NAMES[state.month-1];
-  updateMonthBg();
-})();
-
 rebuildParticles(PERIODS[state.period].particles);
 rebuildSpotMarker();
 rebuildCompPoints();
 refreshAll();
 animate();
-
-// ============ 全局键盘快捷键 ============
-window.addEventListener('keydown', e => {
-  // 在 input/select/textarea 里时不响应
-  if (e.target.matches('input, select, textarea')) return;
-  // ESC 已在别处处理 popup / level2，再加一项：ESC 取消寻路
-  if (e.key === 'Escape' && nav.walking){ cancelWalk(); return; }
-  // R 回到默认视角
-  if (e.key === 'r' || e.key === 'R'){ camResetToDefault(); return; }
-  // Space 清空选择
-  if (e.key === ' '){
-    e.preventDefault();
-    document.getElementById('resetSelBtn').click();
-    return;
-  }
-  // 1-4 切时段
-  const periodMap = {'1':'morning', '2':'lunch', '3':'evening', '4':'off'};
-  if (periodMap[e.key]){
-    const btn = document.querySelector(`#periodCtrl .p[data-period="${periodMap[e.key]}"]`);
-    if (btn) btn.click();
-    return;
-  }
-  // ← → 调月份（仅在二级沙盘未打开时）
-  const level2Open = document.getElementById('level2').classList.contains('show');
-  if (!level2Open && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')){
-    const slider = document.getElementById('monthSlider');
-    const delta = e.key === 'ArrowLeft' ? -1 : 1;
-    slider.value = Math.max(1, Math.min(12, +slider.value + delta));
-    slider.dispatchEvent(new Event('input'));
-    return;
-  }
-  // 二级沙盘打开时：↑↓ 切楼层
-  if (level2Open && (e.key === 'ArrowUp' || e.key === 'ArrowDown')){
-    e.preventDefault();
-    if (!L2.interior) return;
-    const total = L2.interior.floors.length;
-    const delta = e.key === 'ArrowUp' ? 1 : -1;  // ↑ = 高一层 = idx+1
-    L2.curFloorIdx = Math.max(0, Math.min(total-1, L2.curFloorIdx + delta));
-    L2.selectedUnit = null;
-    renderLevel2();
-    return;
-  }
-});
 
 window.addEventListener('resize', () => {
   sizeRenderer();
