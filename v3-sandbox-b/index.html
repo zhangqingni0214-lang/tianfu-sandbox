@@ -413,6 +413,65 @@
   }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+  /* 沙盘左下：回到默认视角按钮 */
+  .view-reset-btn {
+    position: absolute; bottom: 64px; left: 22px;
+    padding: 8px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+    border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
+    font-size: 11px; font-weight: 500; color: var(--ink-2);
+    box-shadow: 0 4px 14px rgba(60,80,110,0.08);
+    transition: all 0.18s;
+  }
+  .view-reset-btn:hover {
+    background: white; color: var(--ink-1); transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(60,80,110,0.12);
+  }
+
+  /* Hero 卡 📌 快照按钮 */
+  .snap-btn {
+    position: absolute; top: 12px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.16); color: white; border: none;
+    cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+  }
+  .snap-btn:hover { background: rgba(255,255,255,0.30); transform: scale(1.08); }
+  .snap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* 底部快照对比浮窗 */
+  .snap-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translate(-50%, 30px);
+    z-index: 50; opacity: 0; pointer-events: none;
+    transition: all 0.32s cubic-bezier(.22,.8,.36,1);
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(28px);
+    border: 1px solid rgba(255,255,255,0.6); border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(60,80,110,0.16);
+    padding: 12px; display: flex; gap: 10px; align-items: center;
+    max-width: calc(100vw - 480px);
+  }
+  .snap-bar.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .snap-bar .snap-hint { font-size: 11px; color: var(--ink-3); padding: 0 8px; }
+  .snap-card {
+    background: rgba(245,247,250,0.85); border-radius: 12px;
+    padding: 10px 12px; min-width: 180px;
+    position: relative; cursor: pointer; transition: all 0.18s;
+  }
+  .snap-card:hover { background: white; }
+  .snap-card .name { font-size: 11px; font-weight: 600; padding-right: 22px; color: var(--ink-1); }
+  .snap-card .meta { font-size: 9px; color: var(--ink-3); margin-top: 1px; }
+  .snap-card .row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; }
+  .snap-card .row .k { color: var(--ink-3); }
+  .snap-card .row .v { font-weight: 700; font-family: 'SF Mono', monospace; color: var(--ink-1); }
+  .snap-card .rm {
+    position: absolute; top: 6px; right: 8px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(0,0,0,0.06); border: none; cursor: pointer;
+    font-size: 11px; line-height: 1; color: var(--ink-3);
+  }
+  .snap-card .rm:hover { background: rgba(255,59,48,0.20); color: var(--red); }
+
   /* 鼠标在场景上时变指针 */
   #scene canvas { cursor: pointer; }
   #scene canvas.walking { cursor: progress; }
@@ -675,6 +734,15 @@
     <span id="walkingText">小人正在前往...</span>
   </div>
 
+  <!-- 沙盘左下：回到默认视角 -->
+  <button class="view-reset-btn" id="viewResetBtn" title="重置视角 / 双击空地同效">⟲ 默认视角</button>
+
+  <!-- 快照对比浮窗 -->
+  <div class="snap-bar" id="snapBar">
+    <span class="snap-hint">📌 对比</span>
+    <div id="snapList" style="display:flex;gap:10px"></div>
+  </div>
+
   <!-- 建筑详情浮层（屏幕坐标跟随建筑） -->
   <div class="b-popup panel" id="bPopup">
     <button class="b-close" id="bClose">×</button>
@@ -747,6 +815,7 @@
 
   <!-- HERO -->
   <div class="hero-card">
+    <button class="snap-btn" id="snapBtn" title="收藏当前评估到对比">📌</button>
     <div class="htop">
       <div>
         <div class="lab">候选地块投资评估</div>
@@ -926,6 +995,89 @@ catL2Sel.addEventListener('change', () => {
   refreshAll();
 });
 
+// ============ 重置视角按钮 + 双击空地 ============
+document.getElementById('viewResetBtn').addEventListener('click', camResetToDefault);
+renderer.domElement.addEventListener('dblclick', e => {
+  // 双击空地 = 重置视角；双击建筑 = 触发寻路（已有逻辑），所以这里只在没命中建筑时响应
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+  mouse.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(pickables());
+  if (!hits.length) camResetToDefault();
+});
+
+// ============ 快照对比（最多 3 个） ============
+const snaps = [];
+const MAX_SNAPS = 3;
+function takeSnapshot(){
+  if (!state.cat || !state.spotId){ alert('请先选业态和铺位'); return; }
+  if (snaps.length >= MAX_SNAPS){ alert('最多对比 ' + MAX_SNAPS + ' 个，请先移除一个'); return; }
+  if (snaps.some(s => s.spotId === state.spotId && s.cat === state.cat)){ alert('已收藏过这个组合'); return; }
+  const sp = SPOTS.find(s => s.id === state.spotId);
+  const cat = CATEGORIES[state.cat];
+  const ev = evaluateSpot(sp, state.cat);
+  const seasonM = cat.season[state.month-1];
+  const periodMul = PERIODS[state.period].mul;
+  const yearRev = ev.yearRev * (1 + seasonM) * (1 + (periodMul-1)*0.3);
+  const yearProfit = yearRev * cat.netMargin - ev.yearRent - cat.monthlyOpex*12;
+  const roi = yearProfit / ev.invest;
+  const payback = ev.invest / Math.max(0.1, yearProfit);
+  snaps.push({
+    spotId: state.spotId, cat: state.cat, period: state.period, month: state.month,
+    spotName: sp.name, catLabel: cat.label, catIcon: cat.icon,
+    score: ev.score, yearRev, roi, payback,
+  });
+  renderSnaps();
+}
+function removeSnap(i){ snaps.splice(i, 1); renderSnaps(); }
+function applySnap(s){
+  // 一键还原
+  catL1Sel.value = CATEGORIES[s.cat].L1;
+  populateL2(catL1Sel.value);     // 会清 state.cat
+  catL2Sel.value = s.cat;
+  state.cat = s.cat;
+  spotSelect.value = s.spotId;
+  state.spotId = s.spotId;
+  state.period = s.period;
+  state.month = s.month;
+  document.querySelectorAll('#periodCtrl .p').forEach(p =>
+    p.classList.toggle('active', p.dataset.period === s.period));
+  document.getElementById('monthSlider').value = s.month;
+  document.getElementById('monthTxt').textContent = MONTH_NAMES[s.month-1];
+  updateMonthBg();
+  rebuildParticles(PERIODS[state.period].particles);
+  rebuildSpotMarker();
+  rebuildCompPoints();
+  refreshAll();
+}
+function renderSnaps(){
+  const bar = document.getElementById('snapBar');
+  const list = document.getElementById('snapList');
+  list.innerHTML = '';
+  if (snaps.length === 0){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  snaps.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'snap-card';
+    card.innerHTML = `
+      <button class="rm" data-i="${i}" title="移除">×</button>
+      <div class="name">${s.spotName}</div>
+      <div class="meta">${s.catIcon} ${s.catLabel}</div>
+      <div class="row"><span class="k">评分</span><span class="v">${s.score.toFixed(1)}</span></div>
+      <div class="row"><span class="k">年营收</span><span class="v">${Math.round(s.yearRev)} 万</span></div>
+      <div class="row"><span class="k">ROI</span><span class="v" style="color:${s.roi>0.30?'var(--green)':s.roi>0?'var(--ink-1)':'var(--red)'}">${(s.roi*100).toFixed(0)}%</span></div>
+      <div class="row"><span class="k">回收</span><span class="v">${s.payback.toFixed(1)} 年</span></div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.matches('.rm')){ removeSnap(+e.target.dataset.i); return; }
+      applySnap(s);
+    });
+    list.appendChild(card);
+  });
+}
+document.getElementById('snapBtn').addEventListener('click', takeSnapshot);
+
 document.querySelectorAll('#periodCtrl .p').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#periodCtrl .p').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
@@ -971,6 +1123,9 @@ controls.zoomSpeed = 2.8;     // 滚轮缩放灵敏度（默认 1.0，提高约 
 controls.minDistance = 220; controls.maxDistance = 900;
 controls.maxPolarAngle = Math.PI*0.46;
 controls.target.set(0, 30, 0);
+// 记录默认视角（"⟲ 重置视角"和"双击空地"会回到这里）
+const DEFAULT_CAM_POS = camera.position.clone();
+const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 30, 0);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.88));
 const dir = new THREE.DirectionalLight(0xffffff, 1.15);
@@ -1656,6 +1811,25 @@ function camStartRestore(){
   camState.mode = 'toRestore';
   camState.tweenDur = TWEEN_DUR_DOWN;
   camState.tweenT0 = performance.now();
+}
+// 用户主动："回到默认视角"（同时把 savedOffset 更新成默认，下次走路结束就回默认）
+function camResetToDefault(){
+  camState.fromOffset = new THREE.Vector3().subVectors(camera.position, controls.target);
+  camState.toOffset = DEFAULT_CAM_POS.clone().sub(DEFAULT_CAM_TARGET);
+  camState.savedOffset = camState.toOffset.clone();
+  camState.mode = 'toRestore';
+  camState.tweenDur = TWEEN_DUR_DOWN;
+  camState.tweenT0 = performance.now();
+  // 同时缓动 target 回原（camStartRestore 默认不动 target）
+  const tgtFrom = controls.target.clone();
+  const t0 = performance.now();
+  function tweenTgt(){
+    const t = Math.min(1, (performance.now()-t0)/TWEEN_DUR_DOWN);
+    const e = easeInOutQuint(t);
+    controls.target.copy(tgtFrom).lerp(DEFAULT_CAM_TARGET, e);
+    if (t<1) requestAnimationFrame(tweenTgt);
+  }
+  tweenTgt();
 }
 function updateCameraTween(){
   if (camState.mode !== 'toOverhead' && camState.mode !== 'toRestore') return;
