@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>单地块业态推演沙盘 · v2.0</title>
+<link rel="stylesheet" href="lib/styles.css" />
+<style>
+  /* ============== 顶栏 ============== */
+  .topnav { padding: 14px 26px; }
+  .topnav .brand .logo { background: linear-gradient(135deg, #b08a1f, #d4af37); }
+  .topnav .tag {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px;
+    background: rgba(212,175,55,.12); color: #8a6c14; margin-left: 8px;
+    font-weight: 600; letter-spacing: .3px;
+  }
+  .topnav .meta {
+    font-size: 12px; color: var(--ink-3); margin-left: 16px;
+  }
+  .topnav .meta b { color: var(--ink-1); font-weight: 600; }
+
+  /* ============== 主布局 ============== */
+  .layout {
+    display: grid; grid-template-columns: 1fr 460px;
+    gap: 18px; padding: 18px;
+    height: calc(100vh - 62px);
+  }
+  @media (max-width: 1280px) {
+    .layout { grid-template-columns: 1fr 420px; }
+  }
+
+  /* ============== 沙盘 ============== */
+  .sandbox {
+    position: relative; border-radius: 22px; overflow: hidden;
+    background: linear-gradient(170deg, #f3f6fa 0%, #e8edf3 100%);
+    box-shadow: 0 8px 28px rgba(60,80,110,.08), 0 2px 6px rgba(60,80,110,.05);
+  }
+  #canvas { width: 100%; height: 100%; display: block; }
+
+  /* 沙盘上的目标铺位浮卡（顶部居中） */
+  .target-card {
+    position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.85); backdrop-filter: blur(20px);
+    padding: 11px 18px; border-radius: 14px;
+    border: 1px solid rgba(212,175,55,.4);
+    box-shadow: 0 4px 16px rgba(60,80,110,.08);
+    display: flex; align-items: center; gap: 14px;
+    z-index: 5;
+  }
+  .target-card .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,.25);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 3px rgba(212,175,55,.25); }
+    50%     { box-shadow: 0 0 0 8px rgba(212,175,55,.08); }
+  }
+  .target-card .name { font-size: 13px; font-weight: 600; }
+  .target-card .sub { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+
+  /* 4 个背景因素 chips（左下角） */
+  .factors {
+    position: absolute; left: 16px; bottom: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 5;
+  }
+  .factor {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.80); backdrop-filter: blur(18px);
+    border: 1px solid rgba(0,0,0,.04);
+    padding: 8px 12px; border-radius: 12px; cursor: pointer;
+    transition: all .2s ease;
+    min-width: 200px;
+  }
+  .factor:hover {
+    background: white; transform: translateX(2px);
+    box-shadow: 0 6px 16px rgba(60,80,110,.10);
+  }
+  .factor.active {
+    background: white;
+    border-color: var(--gold);
+    box-shadow: 0 4px 18px rgba(212,175,55,.22);
+  }
+  .factor .ic { font-size: 18px; }
+  .factor .l { font-size: 12px; font-weight: 600; line-height: 1.2; }
+  .factor .s { font-size: 10px; color: var(--ink-3); margin-top: 1px; }
+  .factor .v {
+    margin-left: auto; font-size: 11px; color: var(--ink-3);
+    font-feature-settings: 'tnum';
+  }
+  .factor .v b { color: var(--ink-1); font-weight: 600; }
+
+  /* 沙盘提示文字（右下角） */
+  .hint {
+    position: absolute; right: 16px; bottom: 16px;
+    font-size: 11px; color: var(--ink-3);
+    background: rgba(255,255,255,.75); backdrop-filter: blur(12px);
+    padding: 6px 12px; border-radius: 10px;
+    z-index: 5;
+  }
+
+  /* ============== 右栏 ============== */
+  .right-rail {
+    display: flex; flex-direction: column; gap: 12px;
+    overflow: hidden;
+  }
+  .rail-header {
+    background: rgba(255,255,255,.78); backdrop-filter: blur(20px);
+    border-radius: 18px; padding: 16px 18px;
+    border: 1px solid rgba(255,255,255,.5);
+    box-shadow: 0 4px 16px rgba(60,80,110,.06);
+  }
+  .rail-header h2 { font-size: 15px; font-weight: 600; }
+  .rail-header h2 .badge-gold { margin-left: 6px; vertical-align: 2px; }
+  .rail-header p { font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
+
+  .cat-select-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  }
+  .cat-pick {
+    flex: 1; display: flex; align-items: center;
+    border: 1px solid rgba(0,0,0,.08); border-radius: 12px;
+    background: rgba(255,255,255,.7); overflow: hidden;
+  }
+  .cat-pick .swatch {
+    width: 30px; height: 36px; display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .cat-pick select {
+    flex: 1; border: none; outline: none; background: transparent;
+    padding: 9px 8px 9px 4px; font-size: 13px; font-weight: 500;
+    color: var(--ink-1); cursor: pointer;
+    font-family: inherit;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23aaa' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .cat-pick.A { border-color: rgba(212,175,55,.35); }
+  .cat-pick.B { border-color: rgba(74,144,226,.35); }
+  .vs-tag {
+    font-size: 10px; padding: 2px 6px; border-radius: 6px;
+    background: var(--ink-1); color: white; font-weight: 600;
+  }
+  .btn-cmp {
+    padding: 7px 10px; font-size: 11px; border-radius: 10px;
+    background: rgba(0,0,0,.04); border: 1px solid transparent;
+    color: var(--ink-2);
+  }
+  .btn-cmp:hover { background: rgba(0,0,0,.06); }
+  .btn-cmp.on {
+    background: var(--ink-1); color: white;
+  }
+
+  /* 5 步推演卡片区 */
+  .steps {
+    flex: 1; overflow-y: auto; padding-right: 4px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .step {
+    background: rgba(255,255,255,.78); backdrop-filter: blur(20px);
+    border-radius: 16px; padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,.5);
+    box-shadow: 0 2px 8px rgba(60,80,110,.04);
+    transition: all .25s ease;
+    cursor: default;
+  }
+  .step:hover {
+    box-shadow: 0 6px 20px rgba(60,80,110,.10);
+    transform: translateY(-1px);
+  }
+  .step.hi {
+    border-color: rgba(212,175,55,.5);
+    box-shadow: 0 8px 22px rgba(212,175,55,.18);
+  }
+  .step header {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .step header .num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--ink-1); color: white;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+  .step header .t { color: var(--ink-1); font-weight: 600; font-size: 12px; }
+  .step .sub-formula {
+    font-size: 10px; color: var(--ink-4); margin-left: auto;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+
+  /* 单值大数字 */
+  .big {
+    font-size: 22px; font-weight: 600; color: var(--ink-1);
+    font-feature-settings: 'tnum';
+  }
+  .big .u { font-size: 11px; color: var(--ink-3); margin-left: 3px; font-weight: 500; }
+  .small-row {
+    display: flex; gap: 12px; margin-top: 4px;
+    font-size: 10px; color: var(--ink-3);
+  }
+  .small-row b { color: var(--ink-2); font-weight: 600; }
+
+  /* 4 客源横向条 */
+  .src-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 4px 0;
+  }
+  .src-row .ic { font-size: 13px; width: 18px; text-align: center; }
+  .src-row .l { width: 44px; color: var(--ink-3); }
+  .src-row .bar {
+    flex: 1; height: 6px; border-radius: 3px;
+    background: rgba(0,0,0,.05); overflow: hidden;
+  }
+  .src-row .bar .fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #d4af37, #f0c860);
+    transition: width .4s ease;
+  }
+  .src-row .v {
+    width: 56px; text-align: right; color: var(--ink-1); font-weight: 600;
+    font-feature-settings: 'tnum';
+  }
+  .src-row .v.B { color: var(--primary); }
+  .src-row.cmp { gap: 4px; }
+  .src-row.cmp .bar { display: flex; gap: 1px; padding: 0; background: transparent; }
+  .src-row.cmp .bar .seg {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, #d4af37, #f0c860);
+  }
+  .src-row.cmp .bar .seg.B {
+    background: linear-gradient(90deg, #4a90e2, #6ab0f0);
+  }
+
+  /* 漏斗 */
+  .funnel {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-top: 6px;
+  }
+  .funnel .lvl {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+  }
+  .funnel .lvl .l { width: 64px; color: var(--ink-3); font-size: 10px; }
+  .funnel .lvl .bar {
+    height: 18px; background: linear-gradient(90deg, #b08a1f, #d4af37);
+    border-radius: 4px; min-width: 6px;
+    display: flex; align-items: center; padding: 0 6px;
+    color: white; font-size: 10px; font-weight: 600;
+    font-feature-settings: 'tnum';
+    transition: width .5s ease;
+  }
+  .funnel .lvl.B .bar { background: linear-gradient(90deg, #2d6cdf, #4a90e2); }
+
+  /* 修正系数三联 */
+  .adj-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .adj-cell {
+    background: rgba(245,247,250,.65); border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .adj-cell .lbl { font-size: 10px; color: var(--ink-3); }
+  .adj-cell .val {
+    font-size: 17px; font-weight: 600; margin-top: 2px;
+    font-feature-settings: 'tnum';
+  }
+  .adj-cell .val.up { color: var(--green); }
+  .adj-cell .val.dn { color: var(--orange); }
+  .adj-cell .sub { font-size: 9.5px; color: var(--ink-4); margin-top: 2px; }
+
+  /* 财务 KPI */
+  .fin-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .fin-grid.cmp { grid-template-columns: 1fr 1fr; }
+  .fin-cell {
+    background: rgba(245,247,250,.65); border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .fin-cell .lbl { font-size: 10px; color: var(--ink-3); }
+  .fin-cell .val {
+    font-size: 19px; font-weight: 600; margin-top: 2px;
+    font-feature-settings: 'tnum';
+  }
+  .fin-cell .val.u { font-size: 11px; color: var(--ink-3); font-weight: 500; margin-left: 2px; }
+  .fin-cell .delta {
+    font-size: 10px; margin-top: 2px;
+    font-feature-settings: 'tnum';
+  }
+  .fin-cell .delta.up { color: var(--green); }
+  .fin-cell .delta.dn { color: var(--red); }
+
+  /* 比较卡片：两列业态结果 */
+  .cmp-cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-feature-settings: 'tnum';
+  }
+  .cmp-cols .col {
+    border-radius: 10px; padding: 8px 10px;
+    background: rgba(245,247,250,.55);
+  }
+  .cmp-cols .col.A { border-left: 2px solid var(--gold); }
+  .cmp-cols .col.B { border-left: 2px solid var(--primary); }
+  .cmp-cols .col .cat-lbl {
+    font-size: 10px; color: var(--ink-3); margin-bottom: 3px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .cmp-cols .col .cat-lbl b { color: var(--ink-1); font-weight: 600; }
+  .cmp-cols .col .v {
+    font-size: 18px; font-weight: 600;
+    font-feature-settings: 'tnum';
+  }
+  .cmp-cols .col .v .u {
+    font-size: 10px; color: var(--ink-3); font-weight: 500; margin-left: 2px;
+  }
+
+  /* 推荐业态条 */
+  .reco-strip {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .reco-chip {
+    font-size: 11px; padding: 4px 8px; border-radius: 8px;
+    background: rgba(212,175,55,.10); color: #6b5008;
+    border: 1px solid rgba(212,175,55,.25); cursor: pointer;
+    transition: all .15s;
+  }
+  .reco-chip:hover { background: rgba(212,175,55,.18); }
+  .reco-chip .rank { font-weight: 700; margin-right: 3px; opacity: .7; }
+
+  /* 推演结论 footer */
+  .conclusion {
+    background: linear-gradient(135deg, #fffdf3, #fff8e0);
+    border: 1px solid rgba(212,175,55,.25);
+    border-radius: 14px; padding: 12px 14px;
+    font-size: 12px; line-height: 1.6; color: #5a4710;
+  }
+  .conclusion b { color: #3a2f08; }
+
+  /* 月份滑块 */
+  .month-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+    font-size: 11px;
+  }
+  .month-row label { color: var(--ink-3); }
+  .month-row input[type=range] { flex: 1; accent-color: var(--gold); }
+  .month-row .mv { font-weight: 600; min-width: 30px; text-align: right; }
+</style>
+</head>
+
+<body>
+
+<!-- ============== 顶栏 ============== -->
+<header class="topnav">
+  <div class="brand">
+    <div class="logo">🎯</div>
+    <span>单地块业态推演 <span class="tag">v2.0</span></span>
+    <span class="meta">天府国际金融中心 · <b>商业主街临街一线</b> · 1F · 100㎡</span>
+  </div>
+  <div class="actions">
+    <a class="btn" href="../v3-sandbox-b/" title="返回 v1.0 多铺位沙盘">← v1.0</a>
+    <button class="btn primary" id="reset-view">重置视角</button>
+  </div>
+</header>
+
+<!-- ============== 主布局 ============== -->
+<main class="layout">
+
+  <!-- ============== 3D 沙盘 ============== -->
+  <section class="sandbox">
+    <canvas id="canvas"></canvas>
+
+    <!-- 中央目标铺位浮卡 -->
+    <div class="target-card">
+      <span class="dot"></span>
+      <div>
+        <div class="name">目标铺位 · 1F · 100㎡</div>
+        <div class="sub">280 元/㎡·月 · 商业主街临街一线</div>
+      </div>
+    </div>
+
+    <!-- 4 类背景因素 chips -->
+    <div class="factors" id="factors">
+      <div class="factor" data-src="commute">
+        <span class="ic">🚇</span>
+        <div>
+          <div class="l">商业大道站</div>
+          <div class="s">1/6 号线 · 160m</div>
+        </div>
+        <div class="v"><b id="vf-commute">—</b> 人/日</div>
+      </div>
+      <div class="factor" data-src="office">
+        <span class="ic">🏢</span>
+        <div>
+          <div class="l">写字楼 ×4</div>
+          <div class="s">金融大厦 / 科技中心 / 商务广场 / 创业大厦</div>
+        </div>
+        <div class="v"><b id="vf-office">—</b> 人/日</div>
+      </div>
+      <div class="factor" data-src="residence">
+        <span class="ic">🏠</span>
+        <div>
+          <div class="l">住宅区 ×8</div>
+          <div class="s">850 户 · 2210 居民</div>
+        </div>
+        <div class="v"><b id="vf-residence">—</b> 人/日</div>
+      </div>
+      <div class="factor" data-src="mall">
+        <span class="ic">🏬</span>
+        <div>
+          <div class="l">银泰 in99</div>
+          <div class="s">180 店 · 14000 客流/日</div>
+        </div>
+        <div class="v"><b id="vf-mall">—</b> 人/日</div>
+      </div>
+    </div>
+
+    <div class="hint">鼠标拖动旋转 · 滚轮缩放 · 悬停右侧步骤可联动高亮</div>
+  </section>
+
+  <!-- ============== 右栏 5 步推演 ============== -->
+  <aside class="right-rail">
+    <!-- 业态选择 -->
+    <div class="rail-header">
+      <h2>业态推演 <span class="badge-gold">v2</span></h2>
+      <p>同一个铺位 · 开不同业态 · 收入差几倍 — 选业态查看完整推演链</p>
+
+      <div class="cat-select-row">
+        <div class="cat-pick A">
+          <div class="swatch" id="sw-a">☕</div>
+          <select id="cat-a"></select>
+        </div>
+        <button class="btn-cmp" id="toggle-cmp">+ 对比业态</button>
+      </div>
+      <div class="cat-select-row" id="row-b" style="display:none;">
+        <span class="vs-tag">VS</span>
+        <div class="cat-pick B">
+          <div class="swatch" id="sw-b">🍱</div>
+          <select id="cat-b"></select>
+        </div>
+      </div>
+
+      <div class="month-row">
+        <label>当前月份</label>
+        <input type="range" id="month" min="1" max="12" value="5" />
+        <span class="mv" id="month-v">5 月</span>
+      </div>
+    </div>
+
+    <!-- 5 步推演 -->
+    <div class="steps" id="steps">
+
+      <!-- Step 1 -->
+      <article class="step" data-step="1" data-hi="all-sources">
+        <header>
+          <span class="num">1</span>
+          <span class="t">背景客流 · 4 类来源</span>
+          <span class="sub-formula">raw × 距离衰减 × 频次</span>
+        </header>
+        <div id="s1-body"></div>
+      </article>
+
+      <!-- Step 2 -->
+      <article class="step" data-step="2" data-hi="cat-sources">
+        <header>
+          <span class="num">2</span>
+          <span class="t">业态吸引 · flowMix × 进店率</span>
+          <span class="sub-formula">× flowMix × r1</span>
+        </header>
+        <div id="s2-body"></div>
+      </article>
+
+      <!-- Step 3 -->
+      <article class="step" data-step="3" data-hi="target">
+        <header>
+          <span class="num">3</span>
+          <span class="t">漏斗转化 · 日营收</span>
+          <span class="sub-formula">× r2 × r3 × AOV</span>
+        </header>
+        <div id="s3-body"></div>
+      </article>
+
+      <!-- Step 4 -->
+      <article class="step" data-step="4" data-hi="target">
+        <header>
+          <span class="num">4</span>
+          <span class="t">修正系数 · 竞争 · 同向 · 季节</span>
+          <span class="sub-formula">× K × M × season</span>
+        </header>
+        <div id="s4-body"></div>
+      </article>
+
+      <!-- Step 5 -->
+      <article class="step" data-step="5" data-hi="target">
+        <header>
+          <span class="num">5</span>
+          <span class="t">年度财务</span>
+          <span class="sub-formula">利润 / 投资 → ROI</span>
+        </header>
+        <div id="s5-body"></div>
+      </article>
+
+      <!-- 推荐 + 结论 -->
+      <article class="step">
+        <header>
+          <span class="num">★</span>
+          <span class="t">该铺位 TOP 业态</span>
+          <span class="sub-formula">全业态扫描</span>
+        </header>
+        <div class="reco-strip" id="reco-strip"></div>
+      </article>
+
+      <article class="conclusion" id="conclusion"></article>
+    </div>
+  </aside>
+
+</main>
+
+<!-- Three.js -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import {
+  TARGET, METRO, OFFICES, RESIDENCES, RESIDENCE_INFO,
+  MALL, ROADS, COMMUTE_FLOWS,
+} from './data/context.js';
+import { CATEGORIES } from './data/categories.js';
+import {
+  computeSources, computeFinance, rankAllCategories,
+} from './lib/calc.js';
+
+// ================================================================
+// 全局状态
+// ================================================================
+const state = {
+  catA: 'coffee',
+  catB: 'zhujiao',
+  compare: false,
+  month: 5,
+  highlight: null,           // 'all-sources' | 'cat-sources' | 'target' | 'src:office' | null
+};
+
+// ================================================================
+// 1) 三维场景
+// ================================================================
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.Fog(0xeef2f7, 600, 1400);
+
+const camera = new THREE.PerspectiveCamera(38, 1, 1, 2000);
+camera.position.set(280, 360, 460);
+camera.lookAt(0, 0, 0);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI * 0.46;
+controls.minDistance = 200;
+controls.maxDistance = 800;
+controls.zoomSpeed = 0.85;
+controls.target.set(0, 0, 0);
+
+const savedView = { pos: camera.position.clone(), tgt: controls.target.clone() };
+
+// 灯光
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xfff4e0, 1.3);
+sun.position.set(220, 380, 180);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -400; sun.shadow.camera.right = 400;
+sun.shadow.camera.top = 400; sun.shadow.camera.bottom = -400;
+sun.shadow.camera.near = 50; sun.shadow.camera.far = 800;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+const sky = new THREE.HemisphereLight(0xeaf2ff, 0xd8d2c2, 0.45);
+scene.add(sky);
+
+// ---- 地面 ----
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(720, 64),
+  new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.92, metalness: 0.0 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 边线圆圈（装饰）
+{
+  const ring = new THREE.RingGeometry(280, 281, 96);
+  const m = new THREE.LineBasicMaterial({ color: 0xc8cdd6, transparent: true, opacity: 0.5 });
+  const r = new THREE.LineLoop(new THREE.EdgesGeometry(ring), m);
+  r.rotation.x = -Math.PI / 2;
+  scene.add(r);
+}
+
+// ---- 道路 ----
+ROADS.forEach(r => {
+  const dx = r.to.x - r.from.x, dz = r.to.z - r.from.z;
+  const len = Math.hypot(dx, dz);
+  const angle = Math.atan2(dz, dx);
+  const geom = new THREE.PlaneGeometry(len, r.width);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xe5e7eb, roughness: 0.94, metalness: 0,
+  });
+  const m = new THREE.Mesh(geom, mat);
+  m.rotation.x = -Math.PI / 2;
+  m.rotation.z = -angle;
+  m.position.set((r.from.x + r.to.x) / 2, 0.1, (r.from.z + r.to.z) / 2);
+  m.receiveShadow = true;
+  scene.add(m);
+
+  // 中线虚线
+  const dashGeom = new THREE.BufferGeometry();
+  const pts = [];
+  const step = 14;
+  for (let i = -len/2; i < len/2; i += step*2) {
+    pts.push(i, 0, 0, i+step, 0, 0);
+  }
+  dashGeom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  const dashMat = new THREE.LineBasicMaterial({ color: 0xc8cdd6 });
+  const dashes = new THREE.LineSegments(dashGeom, dashMat);
+  dashes.rotation.y = -angle;
+  dashes.position.set((r.from.x + r.to.x) / 2, 0.2, (r.from.z + r.to.z) / 2);
+  scene.add(dashes);
+});
+
+// ---- 苹果风建筑工厂 ----
+function makeBuilding(opt) {
+  const { x, z, w, d, h, color, roughness=0.5, metalness=0.05,
+          emissive=0x000000, label='', sub='' } = opt;
+  const g = new THREE.BoxGeometry(w, h, d);
+  const m = new THREE.MeshPhysicalMaterial({
+    color, roughness, metalness, clearcoat: 0.25, clearcoatRoughness: 0.5,
+    emissive, emissiveIntensity: 0.0,
+  });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set(x, h/2, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData = { ...opt, baseEmissive: emissive, _origColor: color };
+  scene.add(mesh);
+
+  // 顶部标签
+  if (label) {
+    const sprite = makeLabelSprite(label, sub);
+    sprite.position.set(x, h + 14, z);
+    scene.add(sprite);
+    mesh.userData.sprite = sprite;
+  }
+  return mesh;
+}
+
+function makeLabelSprite(text, sub='') {
+  const W = 360, H = 88;
+  const canvas2 = document.createElement('canvas');
+  canvas2.width = W; canvas2.height = H;
+  const ctx = canvas2.getContext('2d');
+  // bg
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  roundRect(ctx, 6, 6, W-12, H-12, 18);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // text
+  ctx.fillStyle = '#1d1d1f';
+  ctx.font = '600 30px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, W/2, H/2 - (sub?10:0));
+  if (sub) {
+    ctx.fillStyle = '#86868b';
+    ctx.font = '400 18px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillText(sub, W/2, H/2 + 18);
+  }
+  const tex = new THREE.CanvasTexture(canvas2);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const s = new THREE.Sprite(mat);
+  s.scale.set(60, 14.7, 1);
+  return s;
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y,   x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x,   y+h, r);
+  ctx.arcTo(x,   y+h, x,   y,   r);
+  ctx.arcTo(x,   y,   x+w, y,   r);
+  ctx.closePath();
+}
+
+// ---- 中央目标方块（金色 · 呼吸光晕） ----
+const target = (() => {
+  const g = new THREE.BoxGeometry(TARGET.w, TARGET.h, TARGET.d);
+  const m = new THREE.MeshPhysicalMaterial({
+    color: 0xd4af37, roughness: 0.35, metalness: 0.5,
+    clearcoat: 0.7, clearcoatRoughness: 0.18,
+    emissive: 0x8a6c14, emissiveIntensity: 0.35,
+  });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set(TARGET.x, TARGET.h/2, TARGET.z);
+  mesh.castShadow = true;
+  scene.add(mesh);
+
+  // 金色底圈
+  const ringGeom = new THREE.RingGeometry(18, 22, 64);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xd4af37, transparent: true, opacity: 0.4,
+    side: THREE.DoubleSide,
+  });
+  const ring = new THREE.Mesh(ringGeom, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(TARGET.x, 0.3, TARGET.z);
+  scene.add(ring);
+
+  // 顶部光柱
+  const beamGeom = new THREE.CylinderGeometry(1.2, 5, 36, 16, 1, true);
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0xf6e6a6, transparent: true, opacity: 0.32,
+    side: THREE.DoubleSide, depthWrite: false,
+  });
+  const beam = new THREE.Mesh(beamGeom, beamMat);
+  beam.position.set(TARGET.x, TARGET.h + 20, TARGET.z);
+  scene.add(beam);
+
+  // 标签
+  const sprite = makeLabelSprite('🎯 目标铺位', '1F · 100㎡');
+  sprite.position.set(TARGET.x, TARGET.h + 28, TARGET.z);
+  sprite.scale.set(72, 17.7, 1);
+  scene.add(sprite);
+
+  mesh.userData = { kind: 'target', ring, beam, sprite, baseEmissive: 0x8a6c14 };
+  return mesh;
+})();
+
+// ---- 4 类背景体 ----
+const bgGroups = { commute: [], office: [], residence: [], mall: [] };
+
+// 地铁
+bgGroups.commute.push(makeBuilding({
+  x: METRO.x, z: METRO.z, w: METRO.w, d: METRO.d, h: METRO.h,
+  color: 0x5a6573, roughness: 0.4, metalness: 0.35,
+  label: '🚇 ' + METRO.name, sub: '1/6 号线',
+}));
+
+// 写字楼 4 栋
+OFFICES.forEach((o, i) => {
+  bgGroups.office.push(makeBuilding({
+    x: o.x, z: o.z, w: o.w, d: o.d, h: o.h,
+    color: 0xc6d2e0, roughness: 0.35, metalness: 0.15,
+    label: i === 0 || i === 3 ? o.name : '',
+    sub: i === 0 ? OFFICES.reduce((s,p)=>s+p.whiteCollar,0).toLocaleString() + ' 白领' : '',
+  }));
+});
+
+// 住宅 8 栋
+RESIDENCES.forEach((r, i) => {
+  bgGroups.residence.push(makeBuilding({
+    x: r.x, z: r.z, w: r.w, d: r.d, h: r.h,
+    color: 0xead8c0, roughness: 0.7, metalness: 0.05,
+    label: i === 0 ? '🏠 住宅区' : '',
+    sub: i === 0 ? '2,210 居民' : '',
+  }));
+});
+
+// 商场
+bgGroups.mall.push(makeBuilding({
+  x: MALL.x, z: MALL.z, w: MALL.w, d: MALL.d, h: MALL.h,
+  color: 0xd6c8b0, roughness: 0.5, metalness: 0.15,
+  label: '🏬 ' + MALL.name, sub: '14,000 客流/日',
+}));
+
+// ---- 客流箭头（4 条虚线 · 各背景体 → 目标） ----
+const flowLines = {};
+function makeFlowLine(srcKey, fromX, fromZ) {
+  // 一条点线 + 一颗沿线流动的小球
+  const segs = 36;
+  const pts = [];
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    pts.push(new THREE.Vector3(
+      THREE.MathUtils.lerp(fromX, TARGET.x, t),
+      4 + Math.sin(t * Math.PI) * 8,
+      THREE.MathUtils.lerp(fromZ, TARGET.z, t),
+    ));
+  }
+  const curveGeom = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineDashedMaterial({
+    color: 0xd4af37, dashSize: 5, gapSize: 4,
+    transparent: true, opacity: 0.4,
+  });
+  const line = new THREE.Line(curveGeom, mat);
+  line.computeLineDistances();
+  scene.add(line);
+
+  // 流动小球
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(2.2, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xd4af37 }),
+  );
+  scene.add(ball);
+
+  flowLines[srcKey] = { line, mat, ball, pts, t: Math.random(), highlight: false };
+}
+makeFlowLine('commute',   METRO.x,             METRO.z);
+makeFlowLine('office',    OFFICES[1].x,        (OFFICES[1].z + OFFICES[2].z)/2);
+makeFlowLine('residence', RESIDENCES[2].x,     RESIDENCES[2].z);
+makeFlowLine('mall',      MALL.x,              MALL.z);
+
+// ---- 拾取 ----
+const raycaster = new THREE.Raycaster();
+const mouseV = new THREE.Vector2();
+
+// ---- 重置视角 ----
+document.getElementById('reset-view').addEventListener('click', () => {
+  tweenCamera(savedView.pos.clone(), savedView.tgt.clone(), 900);
+});
+function tweenCamera(toPos, toTgt, dur) {
+  const fromPos = camera.position.clone();
+  const fromTgt = controls.target.clone();
+  const t0 = performance.now();
+  function step() {
+    const t = Math.min(1, (performance.now() - t0) / dur);
+    const e = t < 0.5 ? 16 * t*t*t*t*t : 1 - Math.pow(-2*t + 2, 5) / 2;
+    camera.position.lerpVectors(fromPos, toPos, e);
+    controls.target.lerpVectors(fromTgt, toTgt, e);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  step();
+}
+
+// ---- 主循环 ----
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+const ro = new ResizeObserver(resize); ro.observe(canvas); resize();
+
+const clock = new THREE.Clock();
+function tick() {
+  const dt = clock.getDelta(), t = clock.getElapsedTime();
+
+  // 目标方块呼吸
+  target.material.emissiveIntensity = 0.30 + 0.12 * Math.sin(t * 1.6);
+  target.userData.ring.scale.setScalar(1 + 0.05 * Math.sin(t * 1.4));
+  target.userData.ring.material.opacity = 0.35 + 0.15 * Math.sin(t * 1.4);
+  target.userData.beam.material.opacity = 0.20 + 0.12 * Math.sin(t * 1.6);
+
+  // 流动小球
+  Object.values(flowLines).forEach(fl => {
+    fl.t = (fl.t + dt * (fl.highlight ? 0.55 : 0.18)) % 1;
+    const idx = fl.t * (fl.pts.length - 1);
+    const i0 = Math.floor(idx), i1 = Math.min(fl.pts.length - 1, i0 + 1);
+    const f = idx - i0;
+    fl.ball.position.lerpVectors(fl.pts[i0], fl.pts[i1], f);
+    const targetOp = fl.highlight ? 0.95 : 0.35;
+    fl.mat.opacity += (targetOp - fl.mat.opacity) * 0.12;
+    fl.ball.material.opacity = fl.mat.opacity + 0.3;
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+// ================================================================
+// 2) 高亮控制（联动右栏）
+// ================================================================
+function setHighlight(mode) {
+  state.highlight = mode;
+
+  // 默认所有背景体复位
+  Object.entries(bgGroups).forEach(([k, arr]) => {
+    arr.forEach(b => {
+      const isHi = mode === 'all-sources'
+                || mode === 'src:' + k
+                || (mode === 'cat-sources' && getCatHighlight(k));
+      b.material.emissiveIntensity = isHi ? 0.6 : 0;
+      b.material.emissive = new THREE.Color(isHi ? 0xd4af37 : 0x000000);
+      const fl = flowLines[k];
+      if (fl) fl.highlight = isHi || mode === 'all-sources';
+    });
+  });
+
+  // factor chips active 态
+  document.querySelectorAll('.factor').forEach(f => {
+    const k = f.dataset.src;
+    const isHi = mode === 'all-sources'
+              || mode === 'src:' + k
+              || (mode === 'cat-sources' && getCatHighlight(k));
+    f.classList.toggle('active', !!isHi);
+  });
+
+  // target 在 step 3/4/5 时高亮
+  const targetHi = mode === 'target';
+  target.material.emissiveIntensity = targetHi ? 0.7 : 0.35;
+}
+
+function getCatHighlight(k) {
+  // 对于当前业态，flowMix > 0.20 的来源视为关键
+  const mix = CATEGORIES[state.catA].flowMix;
+  return mix[k] >= 0.20;
+}
+
+// ================================================================
+// 3) 右栏内容渲染
+// ================================================================
+const fmt = {
+  n: (v, p=0) => v == null ? '—' : v.toLocaleString('zh-CN', { maximumFractionDigits: p }),
+  k: v => v >= 10000 ? (v/10000).toFixed(1) + '万' : v.toLocaleString('zh-CN', { maximumFractionDigits: 0 }),
+  pct: v => (v*100).toFixed(0) + '%',
+  money: v => '¥' + v.toLocaleString('zh-CN', { maximumFractionDigits: 0 }),
+};
+
+// 业态选项
+function fillCategorySelect(sel, cur) {
+  sel.innerHTML = '';
+  Object.values(CATEGORIES).forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.icon + ' ' + c.label;
+    if (c.id === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+fillCategorySelect(document.getElementById('cat-a'), state.catA);
+fillCategorySelect(document.getElementById('cat-b'), state.catB);
+
+document.getElementById('cat-a').addEventListener('change', e => {
+  state.catA = e.target.value;
+  document.getElementById('sw-a').textContent = CATEGORIES[state.catA].icon;
+  renderAll();
+});
+document.getElementById('cat-b').addEventListener('change', e => {
+  state.catB = e.target.value;
+  document.getElementById('sw-b').textContent = CATEGORIES[state.catB].icon;
+  renderAll();
+});
+document.getElementById('toggle-cmp').addEventListener('click', e => {
+  state.compare = !state.compare;
+  e.target.classList.toggle('on', state.compare);
+  e.target.textContent = state.compare ? '✓ 对比中' : '+ 对比业态';
+  document.getElementById('row-b').style.display = state.compare ? 'flex' : 'none';
+  renderAll();
+});
+document.getElementById('month').addEventListener('input', e => {
+  state.month = +e.target.value;
+  document.getElementById('month-v').textContent = state.month + ' 月';
+  renderAll();
+});
+
+// chip hover → 高亮单个 source
+document.querySelectorAll('.factor').forEach(f => {
+  f.addEventListener('mouseenter', () => setHighlight('src:' + f.dataset.src));
+  f.addEventListener('mouseleave', () => setHighlight(null));
+});
+
+// 步骤 hover → 高亮联动
+document.querySelectorAll('.step[data-hi]').forEach(s => {
+  s.addEventListener('mouseenter', () => {
+    s.classList.add('hi');
+    setHighlight(s.dataset.hi);
+  });
+  s.addEventListener('mouseleave', () => {
+    s.classList.remove('hi');
+    setHighlight(null);
+  });
+});
+
+// ---- 渲染 Step 1 ----
+function renderStep1(finA, finB) {
+  const src = finA.src;
+  const total = src.total;
+  const maxV = Math.max(src.office, src.residence, src.commute, src.mall);
+  const rows = [
+    { k: 'office',    ic: '🏢', l: '写字楼', v: src.office },
+    { k: 'residence', ic: '🏠', l: '住宅区', v: src.residence },
+    { k: 'commute',   ic: '🚇', l: '地铁',  v: src.commute },
+    { k: 'mall',      ic: '🏬', l: '商场',  v: src.mall },
+  ];
+  const html = `
+    <div class="big">${fmt.n(total)}<span class="u">人/日 · 潜在路过</span></div>
+    ${rows.map(r => `
+      <div class="src-row">
+        <span class="ic">${r.ic}</span>
+        <span class="l">${r.l}</span>
+        <span class="bar"><span class="fill" style="width:${(r.v/maxV*100).toFixed(0)}%"></span></span>
+        <span class="v">${fmt.n(r.v)}</span>
+      </div>
+    `).join('')}
+    <div class="small-row">
+      <span>写字楼距 <b>${fmt.n(src.detail.office.dist,0)}m</b></span>
+      <span>住宅距 <b>${fmt.n(src.detail.residence.dist,0)}m</b></span>
+      <span>商场溢出 <b>18%</b></span>
+    </div>
+  `;
+  document.getElementById('s1-body').innerHTML = html;
+  // chip 数字也更新
+  document.getElementById('vf-office').textContent    = fmt.n(src.office);
+  document.getElementById('vf-residence').textContent = fmt.n(src.residence);
+  document.getElementById('vf-commute').textContent   = fmt.n(src.commute);
+  document.getElementById('vf-mall').textContent      = fmt.n(src.mall);
+}
+
+// ---- 渲染 Step 2 ----
+function renderStep2(finA, finB) {
+  const catA = finA.cat;
+  const effA = finA.eff;
+  const totalA = finA.total;
+  const maxV = Math.max(effA.office, effA.residence, effA.commute, effA.mall, 1);
+
+  const rows = [
+    { k: 'office',    ic: '🏢', l: '写字楼', v: effA.office,    mix: catA.flowMix.office },
+    { k: 'residence', ic: '🏠', l: '住宅区', v: effA.residence, mix: catA.flowMix.residence },
+    { k: 'commute',   ic: '🚇', l: '地铁',  v: effA.commute,   mix: catA.flowMix.commute },
+    { k: 'mall',      ic: '🏬', l: '商场',  v: effA.mall,      mix: catA.flowMix.mall },
+  ];
+
+  let html = `<div class="big">${fmt.n(totalA)}<span class="u">人/日 · 有效到店</span></div>`;
+  html += `<div class="small-row"><span>${catA.icon} <b>${catA.label}</b> · 进店率 r1 = ${fmt.pct(catA.r1)}</span></div>`;
+
+  if (finB) {
+    const catB = finB.cat;
+    const effB = finB.eff;
+    rows.forEach((r, i) => {
+      r.vB = [effB.office, effB.residence, effB.commute, effB.mall][i];
+      r.mixB = [catB.flowMix.office, catB.flowMix.residence, catB.flowMix.commute, catB.flowMix.mall][i];
+    });
+    const mxAny = Math.max(maxV, ...rows.map(r=>r.vB));
+    html += rows.map(r => `
+      <div class="src-row cmp">
+        <span class="ic">${r.ic}</span>
+        <span class="l">${r.l}</span>
+        <span class="bar" style="flex-direction:column; gap:2px;">
+          <span class="seg" style="width:${(r.v/mxAny*100).toFixed(0)}%"></span>
+          <span class="seg B" style="width:${(r.vB/mxAny*100).toFixed(0)}%"></span>
+        </span>
+        <span class="v" style="width:78px;">
+          <span style="color:var(--gold-light); color:#b08a1f;">${fmt.n(r.v)}</span> /
+          <span style="color:var(--primary);">${fmt.n(r.vB)}</span>
+        </span>
+      </div>
+    `).join('');
+    html += `<div class="small-row" style="margin-top:6px;">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-right:4px;"></span>${catA.icon} ${catA.label}</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--primary);margin-right:4px;"></span>${catB.icon} ${catB.label}</span>
+    </div>`;
+  } else {
+    html += rows.map(r => `
+      <div class="src-row">
+        <span class="ic">${r.ic}</span>
+        <span class="l">${r.l}</span>
+        <span class="bar"><span class="fill" style="width:${(r.v/maxV*100).toFixed(0)}%"></span></span>
+        <span class="v">${fmt.n(r.v)} <span style="color:var(--ink-4);font-weight:400;">(${(r.mix*100).toFixed(0)}%)</span></span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('s2-body').innerHTML = html;
+}
+
+// ---- 渲染 Step 3 ----
+function renderStep3(finA, finB) {
+  const cA = finA.cat;
+  const lvlA = [
+    { l: '路过', v: finA.src.total },
+    { l: '进店', v: finA.total },
+    { l: '成交', v: finA.total * cA.r2 },
+    { l: '复购拉升', v: finA.total * cA.r2 * cA.r3 },
+  ];
+  const maxV = Math.max(...lvlA.map(x=>x.v));
+
+  let html = `<div class="big">${fmt.k(finA.dailyRev)}<span class="u">元/日 · 营收基础</span></div>`;
+  html += `<div class="small-row"><span>r2 成交 <b>${fmt.pct(cA.r2)}</b></span><span>客单 <b>¥${cA.AOV}</b></span><span>复购 <b>×${cA.r3}</b></span></div>`;
+  html += `<div class="funnel">`;
+  html += lvlA.map(x => `
+    <div class="lvl">
+      <span class="l">${x.l}</span>
+      <span class="bar" style="width:${Math.max(20, x.v/maxV*100)}%">${fmt.n(x.v,0)}</span>
+    </div>
+  `).join('');
+  html += `</div>`;
+
+  if (finB) {
+    const cB = finB.cat;
+    const lvlB = [
+      { l: '路过', v: finB.src.total },
+      { l: '进店', v: finB.total },
+      { l: '成交', v: finB.total * cB.r2 },
+      { l: '复购拉升', v: finB.total * cB.r2 * cB.r3 },
+    ];
+    const maxB = Math.max(...lvlB.map(x=>x.v), maxV);
+    html += `<div class="small-row" style="margin-top:8px;"><span>${cB.icon} <b>${cB.label}</b> · 日营收 <b>${fmt.k(finB.dailyRev)}</b> 元</span></div>`;
+    html += `<div class="funnel">`;
+    html += lvlB.map(x => `
+      <div class="lvl B">
+        <span class="l">${x.l}</span>
+        <span class="bar" style="width:${Math.max(20, x.v/maxB*100)}%">${fmt.n(x.v,0)}</span>
+      </div>
+    `).join('');
+    html += `</div>`;
+  }
+
+  document.getElementById('s3-body').innerHTML = html;
+}
+
+// ---- 渲染 Step 4 ----
+function renderStep4(finA, finB) {
+  const cell = (lbl, val, sub, isFin) => {
+    const cls = val > 1 ? 'up' : val < 1 ? 'dn' : '';
+    return `<div class="adj-cell">
+      <div class="lbl">${lbl}</div>
+      <div class="val ${cls}">${isFin ? fmt.k(val) : '×' + val.toFixed(2)}</div>
+      <div class="sub">${sub}</div>
+    </div>`;
+  };
+  let html = `
+    <div class="adj-row">
+      ${cell('竞争 K', finA.K, '同业 ' + finA.cat.sameCount + '/' + finA.Ncarry)}
+      ${cell('同向 M', finA.M, '辨识度')}
+      ${cell('季节', finA.season, state.month + ' 月')}
+    </div>
+    <div style="margin-top:8px;">
+      <div class="big">${fmt.k(finA.adjusted)}<span class="u">元/日 · 修正后</span></div>
+      <div class="small-row">
+        <span>原始 <b>${fmt.k(finA.dailyRev)}</b></span>
+        <span>合计修正 <b>×${(finA.K*finA.M*finA.season).toFixed(2)}</b></span>
+      </div>
+    </div>`;
+  if (finB) {
+    html += `
+      <div class="divider" style="margin:10px 0;"></div>
+      <div class="adj-row">
+        ${cell('竞争 K', finB.K, '同业 ' + finB.cat.sameCount + '/' + finB.Ncarry)}
+        ${cell('同向 M', finB.M, '辨识度')}
+        ${cell('季节', finB.season, state.month + ' 月')}
+      </div>
+      <div style="margin-top:6px;">
+        <div class="big" style="color:var(--primary);">${fmt.k(finB.adjusted)}<span class="u">元/日 · ${finB.cat.icon}${finB.cat.label}</span></div>
+      </div>`;
+  }
+  document.getElementById('s4-body').innerHTML = html;
+}
+
+// ---- 渲染 Step 5 ----
+function renderStep5(finA, finB) {
+  if (!finB) {
+    document.getElementById('s5-body').innerHTML = `
+      <div class="fin-grid">
+        <div class="fin-cell">
+          <div class="lbl">年营收</div>
+          <div class="val">${finA.yearRev.toFixed(1)}<span class="u"> 万</span></div>
+        </div>
+        <div class="fin-cell">
+          <div class="lbl">年净利</div>
+          <div class="val" style="color:${finA.yearProfit>0?'var(--green)':'var(--red)'};">
+            ${finA.yearProfit.toFixed(1)}<span class="u"> 万</span>
+          </div>
+        </div>
+        <div class="fin-cell">
+          <div class="lbl">ROI</div>
+          <div class="val" style="color:${finA.roi>0.2?'var(--green)':finA.roi>0?'var(--orange)':'var(--red)'};">
+            ${(finA.roi*100).toFixed(1)}<span class="u">%</span>
+          </div>
+        </div>
+        <div class="fin-cell">
+          <div class="lbl">回收期</div>
+          <div class="val">${finA.payback>0&&finA.payback<99?finA.payback.toFixed(1):'∞'}<span class="u"> 年</span></div>
+        </div>
+        <div class="fin-cell" style="grid-column: span 2;">
+          <div class="lbl">投资额 · 租金占比</div>
+          <div class="val" style="font-size:14px;">
+            ¥${finA.invest.toFixed(0)}<span class="u"> 万</span>
+            · 租金 ${finA.rentRatio.toFixed(1)}<span class="u">%</span>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const cmpCell = (lbl, A, B, unit='万', good='hi') => {
+      const win = good === 'hi' ? (A > B) : (A < B);
+      return `<div class="fin-cell" style="padding:8px 10px;">
+        <div class="lbl">${lbl}</div>
+        <div class="cmp-cols" style="margin-top:2px;">
+          <div class="col A">
+            <div class="cat-lbl"><span>${finA.cat.icon}</span><b>${finA.cat.label}</b></div>
+            <div class="v" style="color:${win?'var(--green)':'var(--ink-1)'};">${A}<span class="u"> ${unit}</span></div>
+          </div>
+          <div class="col B">
+            <div class="cat-lbl"><span>${finB.cat.icon}</span><b>${finB.cat.label}</b></div>
+            <div class="v" style="color:${!win?'var(--green)':'var(--ink-1)'};">${B}<span class="u"> ${unit}</span></div>
+          </div>
+        </div>
+      </div>`;
+    };
+    document.getElementById('s5-body').innerHTML = `
+      ${cmpCell('年营收', finA.yearRev.toFixed(1), finB.yearRev.toFixed(1))}
+      ${cmpCell('年净利', finA.yearProfit.toFixed(1), finB.yearProfit.toFixed(1))}
+      ${cmpCell('ROI',   (finA.roi*100).toFixed(1), (finB.roi*100).toFixed(1), '%')}
+      ${cmpCell('回收期',
+        finA.payback>0&&finA.payback<99?finA.payback.toFixed(1):'∞',
+        finB.payback>0&&finB.payback<99?finB.payback.toFixed(1):'∞', '年', 'lo')}
+    `;
+  }
+}
+
+// ---- 渲染 推荐 TOP ----
+function renderRecommend() {
+  const list = rankAllCategories(state.month).slice(0, 5);
+  const html = list.map((r, i) => `
+    <span class="reco-chip" data-cat="${r.id}">
+      <span class="rank">#${i+1}</span>
+      ${r.cat.icon} ${r.cat.label}
+      <span style="color:var(--ink-3);font-weight:400;margin-left:2px;">
+        净利 ${r.fin.yearProfit.toFixed(0)} 万
+      </span>
+    </span>
+  `).join('');
+  const el = document.getElementById('reco-strip');
+  el.innerHTML = html;
+  el.querySelectorAll('.reco-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      state.catA = c.dataset.cat;
+      document.getElementById('cat-a').value = state.catA;
+      document.getElementById('sw-a').textContent = CATEGORIES[state.catA].icon;
+      renderAll();
+    });
+  });
+}
+
+// ---- 推演结论 ----
+function renderConclusion(finA, finB) {
+  const cA = finA.cat;
+  let html;
+  if (!finB) {
+    const verdict = finA.roi > 0.25 ? '强烈推荐'
+                  : finA.roi > 0.10 ? '可投'
+                  : finA.roi > 0    ? '勉强保本'
+                  : '不建议';
+    const color = finA.roi > 0.25 ? '#1d7a3a'
+                : finA.roi > 0.10 ? '#8a6c14'
+                : finA.roi > 0    ? '#a85a14'
+                : '#8b1b14';
+    html = `
+      <b>结论：</b>本铺位开 <b>${cA.icon} ${cA.label}</b>
+      → 年净利 <b>${finA.yearProfit.toFixed(1)} 万</b>，
+      ROI <b>${(finA.roi*100).toFixed(1)}%</b>，
+      <span style="color:${color};font-weight:700;">${verdict}</span>。
+      <br><span class="muted small">主要客流来自 ${getTopSourceLabel(cA)} ，
+      竞争修正 ×${finA.K.toFixed(2)}（同业 ${cA.sameCount}/${finA.Ncarry}）。</span>`;
+  } else {
+    const winner = finA.yearProfit > finB.yearProfit ? finA : finB;
+    const loser  = finA.yearProfit > finB.yearProfit ? finB : finA;
+    const gap = (winner.yearProfit - loser.yearProfit).toFixed(1);
+    html = `
+      <b>对比结论：</b>同一铺位，
+      <b>${winner.cat.icon} ${winner.cat.label}</b>
+      比 <b>${loser.cat.icon} ${loser.cat.label}</b>
+      多赚 <b>${gap} 万/年</b>。
+      <br><span class="muted small">关键差异：${winner.cat.label} 主要客源（${getTopSourceLabel(winner.cat)}）
+      与本铺位的背景因素更匹配。</span>`;
+  }
+  document.getElementById('conclusion').innerHTML = html;
+}
+
+function getTopSourceLabel(cat) {
+  const labels = { office: '写字楼白领', residence: '住宅居民', commute: '地铁通勤', mall: '商场互补' };
+  const sorted = Object.entries(cat.flowMix).sort((a,b)=>b[1]-a[1]);
+  return sorted.slice(0,2).map(([k,v]) => `${labels[k]}(${(v*100).toFixed(0)}%)`).join(' + ');
+}
+
+// ---- 一次性渲染 ----
+function renderAll() {
+  const finA = computeFinance(state.catA, state.month);
+  const finB = state.compare ? computeFinance(state.catB, state.month) : null;
+  renderStep1(finA, finB);
+  renderStep2(finA, finB);
+  renderStep3(finA, finB);
+  renderStep4(finA, finB);
+  renderStep5(finA, finB);
+  renderRecommend();
+  renderConclusion(finA, finB);
+}
+renderAll();
+</script>
+</body>
+</html>
